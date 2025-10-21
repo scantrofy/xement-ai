@@ -11,7 +11,7 @@ else:
     scopes=["https://www.googleapis.com/auth/generative-language.retriever"])
     creds.refresh(Request())
 
-    creds = creds.with_quota_project("cement-ops-472217")
+    creds = creds.with_quota_project(os.getenv("GCP_PROJECT_ID"))
 
     genai.configure(credentials=creds)
 

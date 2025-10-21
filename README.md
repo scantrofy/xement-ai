@@ -256,8 +256,8 @@ VITE_API_BASE_URL,VITE_API_TIMEOUT
 ### Backend Environment Variables
 ```bash
 GOOGLE_APPLICATION_CREDENTIALS=path/to/service-account.json
-PROJECT_ID=your-project-id
-DATASET=your-dataset-name
+GCP_PROJECT_ID=your-project-id
+BQ_DATASET=your-dataset-name
 STREAM_TABLE=stream-table-name
 ```
 

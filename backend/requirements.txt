@@ -6,3 +6,5 @@ google-cloud-aiplatform
 google-generativeai
 google-cloud-firestore
 pydantic
+bcrypt
+email-validator
