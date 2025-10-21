@@ -1,0 +1,8 @@
+fastapi
+pandas
+uvicorn
+google-cloud-bigquery
+google-cloud-aiplatform
+google-generativeai
+google-cloud-firestore
+pydantic
