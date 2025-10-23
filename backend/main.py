@@ -126,7 +126,7 @@ def latest_state():
     client = bigquery.Client()
     query = """
         SELECT * 
-        FROM `xement-ai.xement-ai-dataset.serve_latest`
+        FROM `xement-ai.xement_ai_dataset.serve_latest`
         ORDER BY timestamp DESC
         LIMIT 1
     """
@@ -143,7 +143,7 @@ def history():
     client = bigquery.Client()
     query = """
         SELECT * 
-        FROM `xement-ai.xement-ai-dataset.serve_latest`
+        FROM `xement-ai.xement_ai_dataset.serve_latest`
         ORDER BY timestamp DESC
         LIMIT 50
     """
@@ -188,7 +188,7 @@ def simulate_fuel():
     client = bigquery.Client()
     query = """
         SELECT * 
-        FROM `xement-ai.xement-ai-dataset.serve_latest`
+        FROM `xement-ai.xement_ai_dataset.serve_latest`
         ORDER BY timestamp DESC
         LIMIT 1
     """
@@ -222,7 +222,7 @@ def run_cycle():
     client = bigquery.Client()
     query = """
         SELECT * 
-        FROM `xement-ai.xement-ai-dataset.serve_latest`
+        FROM `xement-ai.xement_ai_dataset.serve_latest`
         ORDER BY timestamp DESC
         LIMIT 1
     """

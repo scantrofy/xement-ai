@@ -23,10 +23,10 @@ from google.cloud import bigquery
 from google.api_core.exceptions import NotFound
 
 # ---------------- CONFIGS ----------------
-PROJECT = os.getenv("GCP_PROJECT_ID", "xement-ai)
-BQ_DATASET = os.getenv("BQ_DATASET", "xement-ai-dataset")
+PROJECT = os.getenv("GCP_PROJECT_ID", "xement-ai")
+BQ_DATASET = os.getenv("BQ_DATASET", "xement_ai_dataset")
 BQ_DATASET_LOCATION = os.getenv("BQ_DATASET_LOCATION", "US")
-BQ_TABLE = os.getenv("BQ_TABLE", "xement-ai-data-table")
+BQ_TABLE = os.getenv("BQ_TABLE", "xement_ai_training_data")
 NUM_ROWS = int(os.getenv("NUM_ROWS", "20000"))
 PLANTS = os.getenv("PLANTS", "PlantA,PlantB,PlantC").split(",")
 START_TS = os.getenv("START_TS")  # optional ISO string if None, now - NUM_ROWS*interval
@@ -109,7 +109,7 @@ def simulate_row(ts, plant_id):
     raw2 = round(1.0 - raw1, 3)
 
     # Alternative fuel percent (0-60)
-    alt_fuel_pct = float(max(0, min(60, np.random.choice([0, 5, 10, 20, 30, 40, 50]) + np.random.normal(0, 2)))))
+    alt_fuel_pct = float(max(0, min(60, np.random.choice([0, 5, 10, 20, 30, 40, 50]) + np.random.normal(0, 2))))
 
     # Choose fuel type weighted by alt_fuel_pct
     if alt_fuel_pct < 5:

@@ -1,7 +1,7 @@
 .env
-cement_env
-cement_iam.json
-xement_ai.json
+xement_env
+xement_venv
+xement_iam.json
 /notebooks/gemini_prompts_prod.md
 __pycache__
 cement-agent
