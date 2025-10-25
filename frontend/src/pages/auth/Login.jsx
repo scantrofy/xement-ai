@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, User, Lock, Shield, Users, AlertCircle } from 'lucide-react';
 import Logo from '../../components/ui/Logo';
-import { authAPI } from '../../api/auth';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [userRole, setUserRole] = useState('admin'); // 'admin' or 'operator'
   const [formData, setFormData] = useState({
@@ -58,25 +59,32 @@ const Login = () => {
     setIsLoading(true);
     
     try {
-      // Call backend API
-      const response = await authAPI.login({
-        email: formData.email,
-        password: formData.password,
-        role: userRole,
-      });
+      // Use Firebase authentication
+      const { user, token } = await login(formData.email, formData.password);
       
-      // Store token and user data
-      localStorage.setItem('authToken', response.token);
-      localStorage.setItem('userRole', response.user.role);
-      localStorage.setItem('userEmail', response.user.email);
-      localStorage.setItem('userName', response.user.full_name);
-      localStorage.setItem('userOrganization', response.user.organization);
-      localStorage.setItem('isAuthenticated', 'true');
+      // Store additional user data in localStorage
+      localStorage.setItem('userRole', userRole);
+      if (user.displayName) {
+        localStorage.setItem('userName', user.displayName);
+      }
       
       // Navigate to dashboard
       navigate('/overview-dashboard');
     } catch (error) {
-      setApiError(error.message || 'Login failed. Please try again.');
+      // Handle Firebase auth errors
+      let errorMessage = 'Login failed. Please try again.';
+      if (error.code === 'auth/user-not-found') {
+        errorMessage = 'No user found with this email.';
+      } else if (error.code === 'auth/wrong-password') {
+        errorMessage = 'Incorrect password.';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address.';
+      } else if (error.code === 'auth/user-disabled') {
+        errorMessage = 'This account has been disabled.';
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = 'Too many failed login attempts. Please try again later.';
+      }
+      setApiError(errorMessage);
     } finally {
       setIsLoading(false);
     }

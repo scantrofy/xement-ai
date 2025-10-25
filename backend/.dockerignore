@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.log
+*.env
+.venv/
+xement_venv/
+.env
+.git
+.gitignore
+notebooks/
+datasets/

@@ -10,6 +10,11 @@ const api = axios?.create({
   },
 });
 
+// Helper function to get Firebase auth token
+const getAuthToken = () => {
+  return localStorage.getItem('authToken');
+};
+
 // Mock data for development and fallback
 const mockPlantData = {
   energy_use: 85.4,
@@ -79,9 +84,16 @@ const shouldUseMockData = () => {
   return !baseURL || baseURL === 'https://YOUR-CLOUDRUN-URL.a.run.app';
 };
 
-// Request interceptor for logging
+// Request interceptor for adding auth token and logging
 api?.interceptors?.request?.use((config) => {
   console.log(`API Request: ${config?.method?.toUpperCase()} ${config?.url}`);
+  
+  // Add Firebase auth token to protected endpoints
+  const token = getAuthToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  
   return config;
 });
 

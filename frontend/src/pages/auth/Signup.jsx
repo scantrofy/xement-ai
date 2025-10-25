@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, User, Lock, Mail, Shield, Users, Building, AlertCircle } from 'lucide-react';
 import Logo from '../../components/ui/Logo';
-import { authAPI } from '../../api/auth';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Signup = () => {
   const navigate = useNavigate();
+  const { signup } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [userRole, setUserRole] = useState('operator'); // Default to operator for new signups
@@ -80,27 +81,29 @@ const Signup = () => {
     setIsLoading(true);
     
     try {
-      // Call backend API
-      const response = await authAPI.signup({
-        email: formData.email,
-        password: formData.password,
-        fullName: formData.fullName,
-        organization: formData.organization,
-        role: userRole,
-      });
+      // Use Firebase authentication
+      const { user, token } = await signup(formData.email, formData.password);
       
-      // Store token and user data
-      localStorage.setItem('authToken', response.token);
-      localStorage.setItem('userRole', response.user.role);
-      localStorage.setItem('userEmail', response.user.email);
-      localStorage.setItem('userName', response.user.full_name);
-      localStorage.setItem('userOrganization', response.user.organization);
-      localStorage.setItem('isAuthenticated', 'true');
+      // Store additional user data in localStorage
+      localStorage.setItem('userRole', userRole);
+      localStorage.setItem('userName', formData.fullName);
+      localStorage.setItem('userOrganization', formData.organization);
       
       // Navigate to dashboard
       navigate('/overview-dashboard');
     } catch (error) {
-      setApiError(error.message || 'Signup failed. Please try again.');
+      // Handle Firebase auth errors
+      let errorMessage = 'Signup failed. Please try again.';
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'This email is already registered.';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address.';
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = 'Password is too weak. Please use a stronger password.';
+      } else if (error.code === 'auth/operation-not-allowed') {
+        errorMessage = 'Email/password accounts are not enabled. Please contact support.';
+      }
+      setApiError(errorMessage);
     } finally {
       setIsLoading(false);
     }

@@ -26,9 +26,8 @@ const Routes = () => {
             <Route path="/signup" element={<Signup />} />
             
             {/* Dashboard Routes - With Header/Navigation */}
-            {/* AUTHENTICATION TEMPORARILY DISABLED */}
             <Route path="/*" element={
-              // <ProtectedRoute>
+              <ProtectedRoute>
                 <div className="min-h-screen bg-background">
                   <Header />
                   <Navigation />
@@ -44,7 +43,7 @@ const Routes = () => {
                     </RouterRoutes>
                   </main>
                 </div>
-              // </ProtectedRoute>
+              </ProtectedRoute>
             } />
           </RouterRoutes>
         </ErrorBoundary>
