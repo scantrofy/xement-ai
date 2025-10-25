@@ -26,7 +26,7 @@ from google.api_core.exceptions import NotFound
 PROJECT = os.getenv("GCP_PROJECT_ID", "xement-ai")
 BQ_DATASET = os.getenv("BQ_DATASET", "xement_ai_dataset")
 BQ_DATASET_LOCATION = os.getenv("BQ_DATASET_LOCATION", "US")
-BQ_TABLE = os.getenv("BQ_TABLE", "xement_ai_training_data")
+BQ_TABLE = os.getenv("BQ_TABLE", "xement_ai_refinement_data")
 NUM_ROWS = int(os.getenv("NUM_ROWS", "20000"))
 PLANTS = os.getenv("PLANTS", "PlantA,PlantB,PlantC").split(",")
 START_TS = os.getenv("START_TS")  # optional ISO string if None, now - NUM_ROWS*interval
