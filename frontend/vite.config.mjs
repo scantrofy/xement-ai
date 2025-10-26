@@ -16,10 +16,10 @@ export default defineConfig({
     port: "4028",
     host: "0.0.0.0",
     strictPort: true,
-    allowedHosts: ['.amazonaws.com', '.builtwithrocket.new'],
+    allowedHosts: ['.amazonaws.com', '.builtwithrocket.new', 'localhost'],
     proxy: {
       '/api': {
-        target: 'https://cement-ops-api-316903374697.us-central1.run.app',
+        target: process.env.VITE_API_URL || 'http://localhost:8000',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
         secure: true,

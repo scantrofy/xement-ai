@@ -8,12 +8,12 @@ import DashboardFilters from './components/DashboardFilters';
 import { LoadingScreen } from '../../components/ui';
 
 const OverviewDashboard = () => {
-  const { data: plantData, isLoading, error, isRefetching, refetch } = useLatestState();
   const [filters, setFilters] = useState({
-    plant: 'plant1',
-    line: 'all',
+    plant: 'all',
     period: 'lastHour'
   });
+  
+  const { data: plantData, isLoading, error, isRefetching, refetch } = useLatestState(filters);
 
   // Check if we're using mock data
   const isUsingMockData = () => {
@@ -23,9 +23,9 @@ const OverviewDashboard = () => {
 
   // Handle filter changes
   const handleFilterChange = (newFilters) => {
+    console.log('🔍 Dashboard filters updated:', newFilters);
     setFilters(newFilters);
-    // You can add logic here to filter data based on selected filters
-    console.log('Filters changed:', newFilters);
+    // The useLatestState hook will automatically refetch with new filters
   };
 
   // Handle manual refresh
@@ -39,8 +39,8 @@ const OverviewDashboard = () => {
       value: plantData?.energy_use,
       unit: 'kWh/ton',
       icon: 'Zap',
-      thresholds: { optimal: 180, warning: 220 }, // Updated to match API data range
-      inverse: true, // Lower energy use is better
+      thresholds: { optimal: 180, warning: 220 },
+      inverse: true,
     },
     {
       title: 'Grinding Efficiency',
@@ -82,7 +82,7 @@ const OverviewDashboard = () => {
 
   if (isLoading) {
     return (
-      <LoadingScreen 
+      <LoadingScreen
         message="Loading production data..."
         showLogo={true}
         fullScreen={true}
@@ -113,6 +113,22 @@ const OverviewDashboard = () => {
             <p className="text-text-secondary mt-1">
               Real-time cement production monitoring and KPIs
             </p>
+            {/* Active Filters Indicator */}
+            {(filters.plant !== 'all' || filters.period !== 'lastHour') && (
+              <div className="flex items-center gap-2 mt-2">
+                <span className="text-xs text-text-secondary">Active filters:</span>
+                {filters.plant !== 'all' && (
+                  <span className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-md font-medium">
+                    {filters.plant}
+                  </span>
+                )}
+                {filters.period !== 'lastHour' && (
+                  <span className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-md font-medium">
+                    {filters.period}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
           <div className="flex items-center space-x-2">
             {isRefetching && (
@@ -128,7 +144,8 @@ const OverviewDashboard = () => {
         </div>
 
         {/* Dashboard Filters */}
-        <DashboardFilters 
+        <DashboardFilters
+          filters={filters}
           onFilterChange={handleFilterChange}
           onRefresh={handleRefresh}
           isRefreshing={isRefetching}

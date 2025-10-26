@@ -1,22 +1,22 @@
-import React, { useState } from 'react';
-import { Factory, Layers, Clock, Users, Calendar, CalendarDays, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Factory, Clock, Users, Calendar, CalendarDays, RefreshCw } from 'lucide-react';
 
-const DashboardFilters = ({ onFilterChange, onRefresh, isRefreshing }) => {
-  const [selectedPlant, setSelectedPlant] = useState('plant1');
-  const [selectedLine, setSelectedLine] = useState('all');
-  const [selectedPeriod, setSelectedPeriod] = useState('lastHour');
+const DashboardFilters = ({ filters, onFilterChange, onRefresh, isRefreshing }) => {
+  const [selectedPlant, setSelectedPlant] = useState(filters?.plant || 'all');
+  const [selectedPeriod, setSelectedPeriod] = useState(filters?.period || 'lastHour');
+
+  // Sync with parent filters
+  useEffect(() => {
+    if (filters) {
+      setSelectedPlant(filters.plant);
+      setSelectedPeriod(filters.period);
+    }
+  }, [filters]);
 
   const plants = [
-    { value: 'plant1', label: 'Production Plant 1' },
-    { value: 'plant2', label: 'Production Plant 2' },
-    { value: 'plant3', label: 'Production Plant 3' },
-  ];
-
-  const lines = [
-    { value: 'all', label: 'All Lines' },
-    { value: 'line1', label: 'Line 1' },
-    { value: 'line2', label: 'Line 2' },
-    { value: 'line3', label: 'Line 3' },
+    { value: 'PlantA', label: 'Plant A' },
+    { value: 'PlantB', label: 'Plant B' },
+    { value: 'PlantC', label: 'Plant C' },
   ];
 
   const periods = [
@@ -28,25 +28,20 @@ const DashboardFilters = ({ onFilterChange, onRefresh, isRefreshing }) => {
 
   const handlePlantChange = (e) => {
     const value = e.target.value;
+    console.log('🏭 Plant filter changed to:', value);
     setSelectedPlant(value);
-    onFilterChange?.({ plant: value, line: selectedLine, period: selectedPeriod });
-  };
-
-  const handleLineChange = (e) => {
-    const value = e.target.value;
-    setSelectedLine(value);
-    onFilterChange?.({ plant: selectedPlant, line: value, period: selectedPeriod });
+    onFilterChange?.({ plant: value, period: selectedPeriod });
   };
 
   const handlePeriodChange = (value) => {
+    console.log('⏰ Period filter changed to:', value);
     setSelectedPeriod(value);
-    onFilterChange?.({ plant: selectedPlant, line: selectedLine, period: value });
+    onFilterChange?.({ plant: selectedPlant, period: value });
   };
 
   return (
-    <div className="bg-surface border border-border rounded-lg p-4 space-y-4">
-      {/* Plant and Line Filters */}
-      <div className="flex flex-wrap items-center gap-4">
+    <div className="bg-surface border border-border rounded-lg p-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         {/* Plant Filter */}
         <div className="flex items-center gap-2">
           <Factory className="w-5 h-5 text-text-secondary" />
@@ -54,7 +49,7 @@ const DashboardFilters = ({ onFilterChange, onRefresh, isRefreshing }) => {
           <select
             value={selectedPlant}
             onChange={handlePlantChange}
-            className="bg-background border border-border rounded-md px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent min-w-[180px]"
+            className="bg-background border border-border rounded-md px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent min-w-[140px]"
           >
             {plants.map((plant) => (
               <option key={plant.value} value={plant.value}>
@@ -64,26 +59,7 @@ const DashboardFilters = ({ onFilterChange, onRefresh, isRefreshing }) => {
           </select>
         </div>
 
-        {/* Line Filter */}
-        <div className="flex items-center gap-2">
-          <Layers className="w-5 h-5 text-text-secondary" />
-          <label className="text-sm font-medium text-text-secondary">Line:</label>
-          <select
-            value={selectedLine}
-            onChange={handleLineChange}
-            className="bg-background border border-border rounded-md px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent min-w-[140px]"
-          >
-            {lines.map((line) => (
-              <option key={line.value} value={line.value}>
-                {line.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {/* Period Filter and Refresh */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
+        {/* Period Filter and Refresh */}
         {/* Period Buttons */}
         <div className="flex items-center gap-2">
           <Clock className="w-5 h-5 text-text-secondary" />

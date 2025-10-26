@@ -27,7 +27,7 @@ PROJECT = os.getenv("GCP_PROJECT_ID", "xement-ai")
 BQ_DATASET = os.getenv("BQ_DATASET", "xement_ai_dataset")
 BQ_DATASET_LOCATION = os.getenv("BQ_DATASET_LOCATION", "US")
 BQ_TABLE = os.getenv("BQ_TABLE", "xement_ai_refinement_data")
-NUM_ROWS = int(os.getenv("NUM_ROWS", "500"))
+NUM_ROWS = int(os.getenv("NUM_ROWS", "10"))
 PLANTS = os.getenv("PLANTS", "PlantA,PlantB,PlantC").split(",")
 START_TS = os.getenv("START_TS")  # optional ISO string if None, now - NUM_ROWS*interval
 FREQ_MINUTES = int(os.getenv("SIMULATE_FREQ_MINUTES", "5"))
@@ -85,11 +85,26 @@ def ensure_dataset_and_table():
 def simulate_row(ts, plant_id):
     """
     Generate a realistic plant state row.
-    Relationships:
-      - energy_use increases with kiln temp & feed_rate and decreases with grinding_efficiency.
-      - alt_fuel reduces emissions and slightly affects energy.
-      - product quality correlates with grinding_efficiency and raw mix variation.
+    
+    Args:
+        ts: Timestamp for the data point (timezone-aware datetime)
+        plant_id: ID of the plant
+        
+    Returns:
+        dict: Dictionary containing the simulated plant data
+        
+    Note:
+        - energy_use increases with kiln temp & feed_rate and decreases with grinding_efficiency.
+        - alt_fuel reduces emissions and slightly affects energy.
+        - product quality correlates with grinding_efficiency and raw mix variation.
     """
+    # Ensure timestamp is timezone-aware
+    if ts.tzinfo is None:
+        ts = ts.tz_localize('UTC')
+    elif ts.tzinfo.utcoffset(ts) is None:
+        ts = ts.tz_localize('UTC')
+    else:
+        ts = ts.tz_convert('UTC')
     # Base operating envelopes per plant (slightly different baselines)
     base_kiln = random.uniform(1400, 1480) + (hash(plant_id) % 30) * 0.1
     base_grind_eff = random.uniform(78, 92)
@@ -171,18 +186,22 @@ def simulate_row(ts, plant_id):
 
 
 def generate_dataframe(num_rows=NUM_ROWS, freq_minutes=FREQ_MINUTES, plants=PLANTS, start_ts=None):
+    current_time = pd.Timestamp.now(tz=timezone.utc)
     if start_ts:
         start = pd.to_datetime(start_ts).tz_convert(tz.UTC)
+        # Ensure we don't generate future data
+        if start > current_time:
+            raise ValueError("Start timestamp cannot be in the future")
     else:
-        # compute a start timestamp such that last row is now
-        start = pd.Timestamp.now(tz=timezone.utc) - pd.Timedelta(minutes=(num_rows // len(plants)) * freq_minutes)
+        # Compute a start timestamp such that last row is now or earlier
+        start = current_time - pd.Timedelta(minutes=(num_rows // len(plants)) * freq_minutes)
     rows = []
     ts = start
     idx = 0
     # distribute rows across plants sequentially to create interleaved time series
-    while idx < num_rows:
+    while idx < num_rows and ts <= current_time:
         for plant in plants:
-            if idx >= num_rows:
+            if idx >= num_rows or ts > current_time:
                 break
             row = simulate_row(ts, plant)
             rows.append(row)

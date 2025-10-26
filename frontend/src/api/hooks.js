@@ -115,31 +115,75 @@ api?.interceptors?.response?.use(
 );
 
 // API Hook: Get latest plant state/KPIs
-export const useLatestState = () => {
+export const useLatestState = (filters = {}) => {
   return useQuery({
-    queryKey: ['latestState'],
+    queryKey: ['latestState', filters],
     queryFn: async () => {
       // Use mock data if API is not configured or in development
       if (shouldUseMockData()) {
-        console.log('Using mock data for latest state');
+        console.log('Using mock data for latest state with filters:', filters);
+        
+        // Get current time and calculate time window based on period
+        const now = new Date();
+        let minTimestamp = new Date(now);
+        
+        // Adjust the timestamp based on the selected period
+        switch(filters?.period) {
+          case 'lastHour':
+            minTimestamp.setHours(now.getHours() - 1);
+            break;
+          case 'currentShift':
+            minTimestamp.setHours(now.getHours() - 8);
+            break;
+          case 'today':
+            minTimestamp.setHours(0, 0, 0, 0);
+            break;
+          case 'thisWeek':
+            minTimestamp.setDate(now.getDate() - 7);
+            break;
+          default:
+            // Default to last hour
+            minTimestamp.setHours(now.getHours() - 1);
+        }
+        
+        // Generate a random timestamp within the selected period
+        const randomTime = new Date(
+          minTimestamp.getTime() + Math.random() * (now.getTime() - minTimestamp.getTime())
+        );
+        
         // Simulate some variability in mock data
         const variableMockData = {
           ...mockPlantData,
+          plant_id: filters?.plant && filters.plant !== 'all'
+            ? filters.plant
+            : ['PlantA', 'PlantB', 'PlantC'][Math.floor(Math.random() * 3)],
           energy_use: mockPlantData?.energy_use + (Math.random() - 0.5) * 5,
           grinding_efficiency: mockPlantData?.grinding_efficiency + (Math.random() - 0.5) * 3,
           kiln_temp: mockPlantData?.kiln_temp + (Math.random() - 0.5) * 20,
           emissions: mockPlantData?.emissions + (Math.random() - 0.5) * 30,
           product_quality: mockPlantData?.product_quality + (Math.random() - 0.5) * 2,
           production_volume: mockPlantData?.production_volume + (Math.random() - 0.5) * 10,
-          timestamp: new Date()?.toISOString(),
+          timestamp: randomTime.toISOString(),
+          // Add period information to the response
+          period: filters?.period || 'lastHour',
+          period_start: minTimestamp.toISOString(),
+          period_end: now.toISOString()
         };
+        
+        console.log('Generated mock data with timestamp:', variableMockData.timestamp);
+        
         return new Promise((resolve) => {
           setTimeout(() => resolve(variableMockData), 500); // Simulate network delay
         });
       }
 
       try {
-        const { data } = await api?.get('/latest_state');
+        const { data } = await api?.get('/latest_state', {
+          params: {
+            plant: filters?.plant || 'all',
+            period: filters?.period || 'lastHour',
+          },
+        });
         
         // Transform API response to match dashboard expectations
         const transformedData = {
@@ -330,6 +374,7 @@ export const useHistoryData = () => {
           const baseTime = new Date(Date.now() - index * 60 * 60 * 1000); // Each record 1 hour apart
           return {
             timestamp: baseTime.toISOString(),
+            plant_id: ['PlantA', 'PlantB', 'PlantC'][index % 3],
             raw1_frac: 0.65 + Math.random() * 0.1,
             raw2_frac: 0.30 + Math.random() * 0.1,
             grinding_efficiency: 82 + Math.random() * 12,
@@ -351,7 +396,11 @@ export const useHistoryData = () => {
       }
 
       try {
-        const { data } = await api?.get('/history');
+        const { data } = await api?.get('/history', {
+          params: {
+            // Optionally accept filters in future extensions
+          },
+        });
         
         // Transform each historical record similar to latest_state
         const transformedHistory = data.map(record => ({
