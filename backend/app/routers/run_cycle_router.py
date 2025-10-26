@@ -3,7 +3,7 @@ from google.cloud import bigquery
 from datetime import datetime
 from app.models.plant_model import PlantState
 from app.services.firestore_service import fs_client
-from app.services.gemini_call import get_recommendation
+from app.services.gemini_service import get_recommendation
 from app.services.energy_verify import verify_energy_saving
 from app.middleware.auth import require_auth
 

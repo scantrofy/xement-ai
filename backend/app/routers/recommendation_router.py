@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from app.models.plant_model import PlantState
 from app.middleware.auth import require_auth
-from app.services.gemini_call import get_recommendation
+from app.services.gemini_service import get_recommendation
 from app.services.energy_verify import verify_energy_saving
 
 router = APIRouter(prefix="/recommendation", tags=["AI"])
