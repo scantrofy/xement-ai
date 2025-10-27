@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, User, Lock, Shield, Users, AlertCircle } from 'lucide-react';
+import axios from 'axios';
 import Logo from '../../components/ui/Logo';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -62,10 +63,26 @@ const Login = () => {
       // Use Firebase authentication
       const { user, token } = await login(formData.email, formData.password);
       
-      // Store additional user data in localStorage
-      localStorage.setItem('userRole', userRole);
-      if (user.displayName) {
-        localStorage.setItem('userName', user.displayName);
+      // Fetch user data from backend to get role from Firestore
+      try {
+        const response = await axios.post(
+          `${import.meta.env.VITE_API_BASE_URL}/auth/login`,
+          {
+            email: formData.email,
+            password: formData.password,
+            role: 'operator' // This will be overridden by backend
+          }
+        );
+        
+        const userData = response.data.user;
+        
+        // Store user data from Firestore in localStorage
+        localStorage.setItem('userRole', userData.role);
+        localStorage.setItem('userName', userData.full_name);
+        localStorage.setItem('userOrganization', userData.organization);
+      } catch (backendError) {
+        console.warn('Could not fetch user data from backend:', backendError);
+        // Continue anyway - role will be fetched on next auth check
       }
       
       // Navigate to dashboard
@@ -206,17 +223,6 @@ const Login = () => {
               )}
             </div>
 
-            {/* Forgot Password */}
-            <div className="flex items-center justify-end">
-              <button
-                type="button"
-                onClick={() => navigate('/forgot-password')}
-                className="text-sm text-primary hover:text-primary-dark font-medium transition-colors"
-              >
-                Forgot your password?
-              </button>
-            </div>
-
             {/* Submit Button */}
             <button
               type="submit"
@@ -234,16 +240,10 @@ const Login = () => {
             </button>
           </form>
 
-          {/* Sign Up Link */}
-          <div className="mt-6 text-center">
-            <p className="text-text-secondary text-sm">
-              Don't have an account?{' '}
-              <button
-                onClick={() => navigate('/signup')}
-                className="text-primary hover:text-primary-dark font-semibold transition-colors"
-              >
-                Sign Up
-              </button>
+          {/* Admin Contact Message */}
+          <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg text-center">
+            <p className="text-sm text-blue-800 dark:text-blue-200">
+              Need an account? Contact your system administrator.
             </p>
           </div>
         </div>

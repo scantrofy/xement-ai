@@ -1,14 +1,10 @@
 from fastapi import APIRouter, HTTPException, Depends
-from app.models.user_model import UserSignup, UserLogin
-from app.services.auth_service import signup_user, login_user
+from app.models.user_model import UserLogin
+from app.services.auth_service import login_user
 from app.services.firestore_service import verify_token, fs_client
 from app.middleware.auth import require_auth
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
-
-@router.post("/signup")
-def signup(user: UserSignup):
-    return signup_user(user)
 
 @router.post("/login")
 def login(credentials: UserLogin):

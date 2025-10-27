@@ -3,6 +3,7 @@ import { BrowserRouter, Routes as RouterRoutes, Route } from "react-router-dom";
 import ScrollToTop from "components/ScrollToTop";
 import ErrorBoundary from "components/ErrorBoundary";
 import ProtectedRoute from "components/ProtectedRoute";
+import AdminRoute from "components/AdminRoute";
 import { AuthProvider } from "contexts/AuthContext";
 import Header from "components/ui/Header";
 import Navigation from "components/ui/Navigation";
@@ -11,7 +12,8 @@ import AIRecommendationsEngine from "pages/ai-recommendations-engine";
 import ScenarioSimulator from "pages/scenario-simulator";
 import AlertsAnomaliesMonitor from "pages/alerts-anomalies-monitor";
 import ReportsInsights from "pages/reports-insights";
-import { Login, Signup } from "pages/auth";
+import AdminUsers from "pages/admin/AdminUsers";
+import { Login } from "pages/auth";
 import NotFound from "pages/NotFound";
 
 const Routes = () => {
@@ -23,7 +25,6 @@ const Routes = () => {
           <RouterRoutes>
             {/* Auth Routes - No Header/Navigation */}
             <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
             
             {/* Dashboard Routes - With Header/Navigation */}
             <Route path="/*" element={
@@ -39,6 +40,14 @@ const Routes = () => {
                       <Route path="/scenario-simulator" element={<ScenarioSimulator />} />
                       <Route path="/alerts-anomalies-monitor" element={<AlertsAnomaliesMonitor />} />
                       <Route path="/reports-insights" element={<ReportsInsights />} />
+                      <Route 
+                        path="/admin/users" 
+                        element={
+                          <AdminRoute>
+                            <AdminUsers />
+                          </AdminRoute>
+                        } 
+                      />
                       <Route path="*" element={<NotFound />} />
                     </RouterRoutes>
                   </main>

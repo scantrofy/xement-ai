@@ -6,7 +6,7 @@ import logging
 import os
 
 from app.routers import (
-    auth_router, recommendation_router, simulate_router, run_cycle_router, public_router
+    auth_router, recommendation_router, simulate_router, run_cycle_router, public_router, user_management_router
 )
 
 # ----- Initialize FastAPI -----
@@ -50,6 +50,7 @@ app.include_router(public_router.router)
 
 if not IS_DEVELOPMENT:
     app.include_router(auth_router.router)
+    app.include_router(user_management_router.router)
     app.include_router(recommendation_router.router)
     app.include_router(simulate_router.router)
     app.include_router(run_cycle_router.router)
@@ -57,6 +58,8 @@ else:
     from fastapi import APIRouter
     
     dev_router = APIRouter()
+    dev_router.include_router(auth_router.router)
+    dev_router.include_router(user_management_router.router)
     dev_router.include_router(recommendation_router.router)
     dev_router.include_router(simulate_router.router)
     dev_router.include_router(run_cycle_router.router)

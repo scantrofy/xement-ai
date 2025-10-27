@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Icon from '../AppIcon';
 import Logo from './Logo';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Navigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   // Removed notifications state
 
@@ -40,6 +42,12 @@ const Navigation = () => {
       icon: 'FileText',
       description: 'AI-driven analytics and comprehensive reports'
     },
+    ...(user?.role === 'admin' ? [{
+      label: 'User Management',
+      path: '/admin/users',
+      icon: 'Users',
+      description: 'Manage system users and roles'
+    }] : []),
   ];
 
   const handleNavigation = (path) => {
