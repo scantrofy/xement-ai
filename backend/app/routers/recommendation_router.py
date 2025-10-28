@@ -14,6 +14,6 @@ def recommend(state: PlantState, user=Depends(require_auth)):
         vertex_input_modified[rec["parameter"]] = rec["new_value"]
     gemini_output["verified_saving_pct"] = verify_energy_saving(state.dict(), vertex_input_modified)
     return {
-        "user": {"uid": user["uid"], "email": user["email"]},
+        "user": {"user_id": user["user_id"], "email": user["email"]},
         "recommendation": gemini_output
     }

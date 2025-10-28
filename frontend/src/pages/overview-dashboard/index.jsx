@@ -107,7 +107,7 @@ const OverviewDashboard = () => {
         )}
 
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mt-6">
           <div>
             <h1 className="text-3xl font-bold text-text-primary">Overview Dashboard</h1>
             <p className="text-text-secondary mt-1">

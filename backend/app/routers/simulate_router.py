@@ -21,7 +21,7 @@ def simulate_fuel(user=Depends(require_auth)):
         result = simulate_fuel_mix(base_row)
 
         return {
-            "user": {"uid": user["uid"], "email": user["email"]},
+            "user": {"user_id": user["user_id"], "email": user["email"]},
             "simulation": result
         }
     except Exception as e:

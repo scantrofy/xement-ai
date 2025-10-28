@@ -64,7 +64,7 @@ const ScenarioSimulator = () => {
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-8 mt-6">
           <h1 className="text-3xl font-bold text-text-primary mb-2">Scenario Simulator</h1>
           <p className="text-text-secondary">
             Model cement production scenarios and optimize fuel consumption patterns

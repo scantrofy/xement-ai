@@ -1,4 +1,5 @@
 .env
+.env.*
 xement_env
 xement_venv
 xement_iam.json

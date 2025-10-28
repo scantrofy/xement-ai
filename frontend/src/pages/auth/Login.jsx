@@ -59,36 +59,71 @@ const Login = () => {
 
     setIsLoading(true);
     
+    console.log('Login attempt:', { email: formData.email, role: userRole });
+    
     try {
-      // Use Firebase authentication
-      const { user, token } = await login(formData.email, formData.password);
-      
-      // Fetch user data from backend to get role from Firestore
+      // First, fetch user data from backend to get role from Firestore
+      let userData = null;
       try {
+        console.log('Calling backend login API...');
         const response = await axios.post(
           `${import.meta.env.VITE_API_BASE_URL}/auth/login`,
           {
             email: formData.email,
             password: formData.password,
-            role: 'operator' // This will be overridden by backend
+            role: userRole
           }
         );
         
-        const userData = response.data.user;
+        console.log('Backend login successful:', response.data);
+        userData = response.data.user;
+        const backendToken = response.data.token;
         
-        // Store user data from Firestore in localStorage
+        // Store user data from Firestore in localStorage BEFORE Firebase login
         localStorage.setItem('userRole', userData.role);
         localStorage.setItem('userName', userData.full_name);
         localStorage.setItem('userOrganization', userData.organization);
+        localStorage.setItem('userEmail', userData.email);
+        // Store backend token for API calls (this is what the backend expects)
+        localStorage.setItem('authToken', backendToken);
       } catch (backendError) {
-        console.warn('Could not fetch user data from backend:', backendError);
-        // Continue anyway - role will be fetched on next auth check
+        console.error('Backend login error:', backendError);
+        console.error('Error details:', backendError.response?.data);
+        // Handle different types of errors appropriately
+        if (backendError.response?.status === 403) {
+          setApiError(backendError.response.data.detail || 'Invalid role selection.');
+        } else {
+          setApiError('Invalid credentials. Please check your email and password.');
+        }
+        setIsLoading(false);
+        return;
+      }
+      
+      // Then use Firebase authentication
+      try {
+        console.log('Attempting Firebase login...');
+        const { user, token: firebaseToken } = await login(formData.email, formData.password);
+        
+        console.log('Firebase login successful');
+        // Don't overwrite authToken - keep the backend token for API calls
+        // localStorage.setItem('authToken', firebaseToken); // REMOVED - we use backend token
+        localStorage.setItem('firebaseToken', firebaseToken); // Store separately if needed
+        localStorage.setItem('isAuthenticated', 'true');
+      } catch (firebaseError) {
+        console.error('Firebase login error:', firebaseError);
+        console.error('Firebase error code:', firebaseError.code);
+        // If Firebase fails but backend succeeded, we still have a valid session
+        // The authToken from backend is stored in localStorage, so we can proceed
+        localStorage.setItem('isAuthenticated', 'true');
+        
+        // Show a warning but don't fail the login
+        console.warn('Firebase authentication failed, but backend authentication succeeded');
       }
       
       // Navigate to dashboard
       navigate('/overview-dashboard');
     } catch (error) {
-      // Handle Firebase auth errors
+      console.error('Login error:', error);
       let errorMessage = 'Login failed. Please try again.';
       if (error.code === 'auth/user-not-found') {
         errorMessage = 'No user found with this email.';
@@ -127,6 +162,9 @@ const Login = () => {
         <div className="bg-surface rounded-2xl shadow-xl border border-border-light p-8">
           {/* Role Switcher */}
           <div className="mb-6">
+            <label className="block text-sm font-medium text-text-primary mb-2">
+              Account Type
+            </label>
             <div className="flex bg-background rounded-lg p-1 border border-border-light">
               <button
                 type="button"
@@ -153,6 +191,11 @@ const Login = () => {
                 <span>Operator</span>
               </button>
             </div>
+            <p className="mt-2 text-xs text-text-secondary">
+              {userRole === 'admin' 
+                ? 'Full access to all features and user management' 
+                : 'Access to monitoring and operational features'}
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -11,6 +12,18 @@ const Header = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const userMenuRef = useRef(null);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
+
+  useEffect(() => {
+    if (showUserMenu && userMenuRef.current) {
+      const rect = userMenuRef.current.getBoundingClientRect();
+      setMenuPosition({
+        top: rect.bottom + 8,
+        right: window.innerWidth - rect.right
+      });
+    }
+  }, [showUserMenu]);
 
   return (
     <header className="bg-surface border-b border-border-medium px-6 py-4 fixed top-0 left-0 right-0 z-100">
@@ -42,8 +55,9 @@ const Header = () => {
           </button>
 
           {/* User Profile Dropdown */}
-          <div className="relative ml-3">
+          <div className="ml-3">
             <button
+              ref={userMenuRef}
               onClick={() => setShowUserMenu(!showUserMenu)}
               className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-surface-light transition-colors"
             >
@@ -64,14 +78,20 @@ const Header = () => {
               </div>
             </button>
 
-            {/* Dropdown Menu */}
-            {showUserMenu && (
+            {/* Dropdown Menu - Using Portal to escape stacking context */}
+            {showUserMenu && createPortal(
               <>
                 <div 
-                  className="fixed inset-0 z-10" 
+                  className="fixed inset-0 z-40" 
                   onClick={() => setShowUserMenu(false)}
                 />
-                <div className="absolute right-0 mt-2 w-56 bg-surface rounded-lg shadow-lg border border-border-light z-20">
+                <div 
+                  className="fixed w-64 bg-surface rounded-lg shadow-2xl border border-border-light z-50"
+                  style={{
+                    top: `${menuPosition.top}px`,
+                    right: `${menuPosition.right}px`
+                  }}
+                >
                   <div className="p-3 border-b border-border-light">
                     <p className="text-sm font-medium text-text-primary">
                       {user?.name || 'User'}
@@ -105,7 +125,8 @@ const Header = () => {
                     Sign Out
                   </button>
                 </div>
-              </>
+              </>,
+              document.body
             )}
           </div>
 

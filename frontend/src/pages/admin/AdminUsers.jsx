@@ -140,7 +140,7 @@ const AdminUsers = () => {
     <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 mt-6">
           <div>
             <h1 className="text-3xl font-bold text-text-primary mb-2">User Management</h1>
             <p className="text-text-secondary">Manage system users and their roles</p>

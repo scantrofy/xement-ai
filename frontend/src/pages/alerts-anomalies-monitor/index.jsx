@@ -1,52 +1,75 @@
-import React, { useState, useEffect } from 'react';
-import { useRunCycle } from '../../api/hooks';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useRecentAlerts, useCheckAnomalies, useAcknowledgeAlert } from '../../api/hooks';
 import Icon from '../../components/AppIcon';
 
 const AlertsAnomaliesMonitor = () => {
-  const [alerts, setAlerts] = useState([]);
-  const [filteredAlerts, setFilteredAlerts] = useState([]);
   const [severityFilter, setSeverityFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [timeFilter, setTimeFilter] = useState('24h');
   const [selectedAlert, setSelectedAlert] = useState(null);
-  const [anomalyData, setAnomalyData] = useState(null);
-  const runCycleMutation = useRunCycle();
+  const [lastChecked, setLastChecked] = useState(null);
+  
+  // Fetch alerts from Firestore (polls every 10 minutes)
+  const { data: firestoreAlerts = [], isLoading, refetch: refetchAlerts } = useRecentAlerts({
+    limit: 100,
+    refetchInterval: 600000 // 10 minutes (600,000 ms)
+  });
+  
+  const checkAnomaliesMutation = useCheckAnomalies();
+  const acknowledgeAlertMutation = useAcknowledgeAlert();
 
-  // Load alerts from API on component mount
+  // Load last checked timestamp and run check on mount
   useEffect(() => {
-    loadAlertsFromCycle();
-  }, []);
+    const lastCheckTime = localStorage.getItem('lastAnomalyCheckTime');
+    const now = Date.now();
+    const fiveMinutes = 5 * 60 * 1000;
+    
+    if (lastCheckTime) {
+      const timestamp = new Date(parseInt(lastCheckTime));
+      const timeSinceLastCheck = now - timestamp.getTime();
+      
+      // If last check was within 5 minutes, just load the timestamp
+      if (timeSinceLastCheck < fiveMinutes) {
+        setLastChecked(timestamp);
+        console.log('✓ Recent check found, skipping immediate check');
+      } else {
+        // Last check was > 5 minutes ago, run a new check
+        console.log('🔍 Running anomaly check on page load...');
+        loadAlertsFromCycle();
+      }
+    } else {
+      // No previous check, run initial check
+      console.log('🔍 Running initial anomaly check...');
+      loadAlertsFromCycle();
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Update last checked when new alerts arrive
+  useEffect(() => {
+    if (firestoreAlerts.length > 0) {
+      const lastCheckTime = localStorage.getItem('lastAnomalyCheckTime');
+      if (lastCheckTime) {
+        setLastChecked(new Date(parseInt(lastCheckTime)));
+      }
+    }
+  }, [firestoreAlerts]);
 
   const loadAlertsFromCycle = async () => {
     try {
-      const result = await runCycleMutation?.mutateAsync();
-      setAnomalyData(result?.anomaly);
+      const result = await checkAnomaliesMutation.mutateAsync();
+      const timestamp = new Date();
+      setLastChecked(timestamp);
+      localStorage.setItem('lastAnomalyCheckTime', timestamp.getTime().toString());
       
-      // Transform anomalies into alerts using the correct API structure
-      if (result?.anomaly?.anomaly_flag && result?.anomaly?.anomalies?.length > 0) {
-        const transformedAlerts = result.anomaly.anomalies.map((anomaly, index) => ({
-          id: Date.now() + index,
-          type: formatAnomalyName(anomaly),
-          equipment: getEquipmentFromAnomaly(anomaly),
-          severity: getSeverityFromAnomaly(anomaly),
-          message: `${formatAnomalyName(anomaly)} detected in production parameters`,
-          timestamp: new Date(),
-          status: 'active',
-          category: getCategoryFromAnomaly(anomaly),
-          details: `AI analysis detected anomalous behavior: ${anomaly}. Immediate attention recommended.`,
-          recommendations: getRecommendationsFromAnomaly(anomaly),
-          acknowledged: false,
-          rawAnomaly: anomaly
-        }));
-        setAlerts(transformedAlerts);
-      } else {
-        // No anomalies detected
-        setAlerts([]);
-      }
+      console.log('✅ Anomaly check completed:', result);
+      
+      // Wait a moment for Firestore to update, then manually refetch
+      setTimeout(async () => {
+        console.log('🔄 Refreshing alerts from Firestore...');
+        await refetchAlerts();
+      }, 2000);
     } catch (error) {
-      console.error('Failed to load alerts:', error);
-      setAlerts([]);
-      setAnomalyData(null);
+      console.error('Failed to trigger anomaly check:', error);
     }
   };
 
@@ -156,8 +179,29 @@ const AlertsAnomaliesMonitor = () => {
     return ['Investigate anomaly source', 'Monitor system parameters closely', 'Contact maintenance team if needed'];
   };
 
-  useEffect(() => {
-    let filtered = alerts;
+  // Transform Firestore alerts to display format using useMemo
+  const filteredAlerts = useMemo(() => {
+    const transformedAlerts = firestoreAlerts.map((alert) => {
+      // Transform anomalies array into display alerts
+      const anomalies = alert.anomalies || [];
+      return anomalies.map((anomaly, index) => ({
+        id: `${alert.id}-${index}`,
+        firestoreDocId: alert.id, // Store the actual Firestore document ID
+        type: formatAnomalyName(anomaly),
+        equipment: getEquipmentFromAnomaly(anomaly),
+        severity: alert.severity || getSeverityFromAnomaly(anomaly),
+        message: `${formatAnomalyName(anomaly)} detected in production parameters`,
+        timestamp: new Date(alert.timestamp),
+        status: alert.acknowledged ? 'resolved' : 'active',
+        category: getCategoryFromAnomaly(anomaly),
+        details: `AI analysis detected anomalous behavior: ${anomaly}. Immediate attention recommended.`,
+        recommendations: getRecommendationsFromAnomaly(anomaly),
+        acknowledged: alert.acknowledged || false,
+        rawAnomaly: anomaly
+      }));
+    }).flat();
+
+    let filtered = transformedAlerts;
 
     if (severityFilter !== 'all') {
       filtered = filtered?.filter(alert => alert?.severity === severityFilter);
@@ -182,8 +226,8 @@ const AlertsAnomaliesMonitor = () => {
       );
     }
 
-    setFilteredAlerts(filtered?.sort((a, b) => b?.timestamp?.getTime() - a?.timestamp?.getTime()));
-  }, [alerts, severityFilter, categoryFilter, timeFilter]);
+    return filtered?.sort((a, b) => b?.timestamp?.getTime() - a?.timestamp?.getTime());
+  }, [firestoreAlerts, severityFilter, categoryFilter, timeFilter]);
 
   const handleCheckAnomalies = async () => {
     await loadAlertsFromCycle();
@@ -229,20 +273,48 @@ const AlertsAnomaliesMonitor = () => {
     return `${minutes}m ago`;
   };
 
-  const acknowledgeAlert = (alertId) => {
-    setAlerts(prev => prev?.map(alert => 
-      alert?.id === alertId ? { ...alert, acknowledged: true } : alert
-    ));
+  const acknowledgeAlert = async (alert) => {
+    try {
+      // Get user email from localStorage (or use a default)
+      const userEmail = localStorage.getItem('userEmail') || 'user@example.com';
+      
+      // Use the Firestore document ID, not the composite display ID
+      const firestoreDocId = alert.firestoreDocId || alert.id;
+      
+      console.log('🔄 Acknowledging alert:', firestoreDocId);
+      
+      await acknowledgeAlertMutation.mutateAsync({
+        alert_id: firestoreDocId,
+        acknowledged_by: userEmail
+      });
+      
+      console.log('✅ Alert acknowledged:', firestoreDocId);
+      
+      // Close the modal after acknowledging
+      setSelectedAlert(null);
+      
+      // Refetch alerts to update the UI
+      await refetchAlerts();
+    } catch (error) {
+      console.error('❌ Failed to acknowledge alert:', error);
+      alert('Failed to acknowledge alert. Please try again.');
+    }
   };
 
   const criticalAlerts = filteredAlerts?.filter(alert => alert?.severity === 'critical' && alert?.status === 'active');
   const activeAlerts = filteredAlerts?.filter(alert => alert?.status === 'active');
+  const hasAnomalies = filteredAlerts?.length > 0;
+  // Only consider it "checked" if we have a recent check (within last 15 minutes) or if we have alerts
+  const hasChecked = lastChecked !== null && (
+    hasAnomalies || 
+    (Date.now() - lastChecked.getTime()) < 15 * 60 * 1000
+  );
 
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-8 mt-6">
           <h1 className="text-3xl font-bold text-text-primary mb-2">Alerts & Anomalies Monitor</h1>
           <p className="text-text-secondary">
             Real-time monitoring and anomaly detection for cement production operations
@@ -251,77 +323,66 @@ const AlertsAnomaliesMonitor = () => {
 
         {/* Alert Status Banner */}
         <div className={`mb-8 p-6 rounded-lg border-l-4 ${
-          anomalyData?.anomaly_flag
-            ? criticalAlerts?.length > 0
-              ? 'bg-red-50 dark:bg-red-900/15 border-red-500'
-              : 'bg-yellow-50 dark:bg-yellow-900/15 border-yellow-500'
-            : 'bg-green-50 dark:bg-green-900/15 border-green-500'
+          !hasChecked
+            ? 'bg-blue-50 dark:bg-blue-900/15 border-blue-500'
+            : hasAnomalies
+              ? criticalAlerts?.length > 0
+                ? 'bg-red-50 dark:bg-red-900/15 border-red-500'
+                : 'bg-yellow-50 dark:bg-yellow-900/15 border-yellow-500'
+              : 'bg-green-50 dark:bg-green-900/15 border-green-500'
         }`}>
           <div className="flex items-center mb-4">
             <Icon 
-              name={anomalyData?.anomaly_flag ? (criticalAlerts?.length > 0 ? "AlertTriangle" : "AlertCircle") : "CheckCircle"} 
+              name={
+                !hasChecked 
+                  ? "Info" 
+                  : hasAnomalies 
+                    ? (criticalAlerts?.length > 0 ? "AlertTriangle" : "AlertCircle") 
+                    : "CheckCircle"
+              } 
               size={24} 
               className={`mr-2 ${
-                anomalyData?.anomaly_flag
-                  ? criticalAlerts?.length > 0
-                    ? 'text-red-600'
-                    : 'text-yellow-600'
-                  : 'text-green-600'
+                !hasChecked
+                  ? 'text-blue-600'
+                  : hasAnomalies
+                    ? criticalAlerts?.length > 0
+                      ? 'text-red-600'
+                      : 'text-yellow-600'
+                    : 'text-green-600'
               }`} 
             />
             <h2 className={`text-xl font-bold ${
-              anomalyData?.anomaly_flag
-                ? criticalAlerts?.length > 0
-                  ? 'text-red-900 dark:text-red-300'
-                  : 'text-yellow-900 dark:text-yellow-300'
-                : 'text-green-900 dark:text-green-300'
+              !hasChecked
+                ? 'text-blue-900 dark:text-blue-300'
+                : hasAnomalies
+                  ? criticalAlerts?.length > 0
+                    ? 'text-red-900 dark:text-red-300'
+                    : 'text-yellow-900 dark:text-yellow-300'
+                  : 'text-green-900 dark:text-green-300'
             }`}>
-              {anomalyData?.anomaly_flag
-                ? criticalAlerts?.length > 0
-                  ? 'Critical Alerts - Immediate Attention Required'
-                  : 'Warning - Anomalies Detected'
-                : 'All Systems Normal - No Anomalies Detected'
+              {!hasChecked
+                ? 'Monitoring Active - Auto-check every 10 minutes'
+                : hasAnomalies
+                  ? criticalAlerts?.length > 0
+                    ? 'Critical Alerts - Immediate Attention Required'
+                    : 'Warning - Anomalies Detected'
+                  : 'All Systems Normal - No Anomalies Detected'
               }
             </h2>
           </div>
           
-          {anomalyData?.anomaly_flag && anomalyData?.anomalies?.length > 0 ? (
+          {hasAnomalies && activeAlerts?.length > 0 ? (
             <div>
               <p className={`text-sm mb-4 ${
                 criticalAlerts?.length > 0 ? 'text-red-700 dark:text-red-300' : 'text-yellow-700 dark:text-yellow-300'
               }`}>
-                {anomalyData.anomalies.length} anomal{anomalyData.anomalies.length === 1 ? 'y' : 'ies'} detected in the production system:
+                {activeAlerts.length} active anomal{activeAlerts.length === 1 ? 'y' : 'ies'} detected in the production system
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {anomalyData.anomalies.map((anomaly, index) => (
-                  <div key={index} className={`p-3 rounded-lg border ${
-                    getSeverityFromAnomaly(anomaly) === 'critical'
-                      ? 'bg-red-100 dark:bg-red-900/25 border-red-200 dark:border-red-700'
-                      : 'bg-yellow-100 dark:bg-yellow-900/25 border-yellow-200 dark:border-yellow-700'
-                  }`}>
-                    <div className="flex items-center space-x-2">
-                      <div className={`w-2 h-2 rounded-full ${
-                        getSeverityFromAnomaly(anomaly) === 'critical' ? 'bg-red-500' : 'bg-yellow-500'
-                      }`}></div>
-                      <span className={`text-sm font-medium ${
-                        getSeverityFromAnomaly(anomaly) === 'critical'
-                          ? 'text-red-800 dark:text-red-300'
-                          : 'text-yellow-800 dark:text-yellow-300'
-                      }`}>
-                        {formatAnomalyName(anomaly)}
-                      </span>
-                    </div>
-                    <p className={`text-xs mt-1 ${
-                      getSeverityFromAnomaly(anomaly) === 'critical'
-                        ? 'text-red-600 dark:text-red-400'
-                        : 'text-yellow-600 dark:text-yellow-400'
-                    }`}>
-                      {getEquipmentFromAnomaly(anomaly)}
-                    </p>
-                  </div>
-                ))}
-              </div>
             </div>
+          ) : !hasChecked ? (
+            <p className="text-blue-700 dark:text-blue-300 text-sm">
+              Automatic anomaly detection is running every 10 minutes. Click "Check Anomalies" to run an immediate check.
+            </p>
           ) : (
             <p className="text-green-700 dark:text-green-300 text-sm">
               All production parameters are operating within normal ranges. System monitoring is active.
@@ -386,13 +447,23 @@ const AlertsAnomaliesMonitor = () => {
               </div>
             </div>
 
+            {/* Last Checked Indicator */}
+            {lastChecked && (
+              <div className="text-sm text-text-secondary flex items-center gap-2">
+                <Icon name="Clock" size={16} />
+                <span>
+                  Last checked: {lastChecked.toLocaleTimeString()}
+                </span>
+              </div>
+            )}
+
             {/* Check Anomalies Button */}
             <button
               onClick={handleCheckAnomalies}
-              disabled={runCycleMutation?.isPending}
+              disabled={checkAnomaliesMutation?.isPending}
               className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
             >
-              {runCycleMutation?.isPending ? (
+              {checkAnomaliesMutation?.isPending ? (
                 <>
                   <Icon name="Loader2" size={18} className="mr-2 animate-spin" />
                   Checking...
@@ -458,14 +529,30 @@ const AlertsAnomaliesMonitor = () => {
           <div className="lg:col-span-2 space-y-4">
             <h2 className="text-xl font-semibold text-text-primary">Alert Stream</h2>
             
-            {filteredAlerts?.length === 0 ? (
+            {isLoading ? (
               <div className="bg-surface rounded-lg shadow-sm border border-border-light p-12 text-center">
-                <Icon name="CheckCircle" size={48} className="text-success-500 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-text-primary mb-2">✅ No Anomalies Detected</h3>
-                <p className="text-text-secondary">All systems are operating within normal parameters.</p>
+                <Icon name="Loader2" size={48} className="text-primary mx-auto mb-4 animate-spin" />
+                <h3 className="text-lg font-medium text-text-primary mb-2">Loading Alerts...</h3>
+                <p className="text-text-secondary">Fetching recent anomaly data from the system.</p>
+              </div>
+            ) : filteredAlerts?.length === 0 ? (
+              <div className="bg-surface rounded-lg shadow-sm border border-border-light p-12 text-center">
+                {!hasChecked ? (
+                  <>
+                    <Icon name="Activity" size={48} className="text-blue-500 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-text-primary mb-2">Auto-Check Active</h3>
+                    <p className="text-text-secondary">System automatically checks for anomalies every 10 minutes. Click "Check Anomalies" for an immediate check.</p>
+                  </>
+                ) : (
+                  <>
+                    <Icon name="CheckCircle" size={48} className="text-success-500 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-text-primary mb-2">✅ No Anomalies Detected</h3>
+                    <p className="text-text-secondary">All systems are operating within normal parameters.</p>
+                  </>
+                )}
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-4 max-h-[calc(100vh-400px)] overflow-y-auto pr-2 scrollbar-thin">
                 {filteredAlerts?.map(alert => (
                   <div
                     key={alert?.id}
@@ -528,7 +615,7 @@ const AlertsAnomaliesMonitor = () => {
             <h2 className="text-xl font-semibold text-text-primary mb-4">Alert Details</h2>
             
             {selectedAlert ? (
-              <div className="bg-surface rounded-lg shadow-sm border border-border-light p-6 space-y-6">
+              <div className="bg-surface rounded-lg shadow-sm border border-border-light p-6 space-y-6 max-h-[calc(100vh-400px)] overflow-y-auto scrollbar-thin">
                 <div>
                   <h3 className="font-semibold text-text-primary mb-2">{selectedAlert?.type}</h3>
                   <p className="text-sm text-text-secondary">{selectedAlert?.equipment}</p>
@@ -562,11 +649,21 @@ const AlertsAnomaliesMonitor = () => {
                   
                   {!selectedAlert?.acknowledged && (
                     <button
-                      onClick={() => acknowledgeAlert(selectedAlert?.id)}
-                      className="w-full bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-600 transition-colors flex items-center justify-center"
+                      onClick={() => acknowledgeAlert(selectedAlert)}
+                      disabled={acknowledgeAlertMutation.isPending}
+                      className="w-full bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
                     >
-                      <Icon name="Check" size={16} className="mr-2" />
-                      Acknowledge Alert
+                      {acknowledgeAlertMutation.isPending ? (
+                        <>
+                          <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
+                          Acknowledging...
+                        </>
+                      ) : (
+                        <>
+                          <Icon name="Check" size={16} className="mr-2" />
+                          Acknowledge Alert
+                        </>
+                      )}
                     </button>
                   )}
                 </div>

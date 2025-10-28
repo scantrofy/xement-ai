@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { ErrorBoundary } from './components/ui';
 import Routes from './Routes';
+import AlertNotificationManager from './components/AlertNotificationManager';
 import './styles/tailwind.css';
 
 // Create a client
@@ -23,6 +24,7 @@ function App() {
       <ThemeProvider>
         <QueryClientProvider client={queryClient}>
           <Routes />
+          <AlertNotificationManager />
         </QueryClientProvider>
       </ThemeProvider>
     </ErrorBoundary>

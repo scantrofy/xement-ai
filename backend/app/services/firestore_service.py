@@ -1,8 +1,9 @@
 from google.cloud import firestore
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import secrets
 
-fs_client = firestore.Client()
+# Use the xement-ai-firestore database instead of default
+fs_client = firestore.Client(database="xement-ai-firestore")
 USERS_COLLECTION = "users"
 TOKENS_COLLECTION = "auth_tokens"
 
@@ -18,13 +19,14 @@ def get_user_by_email(email: str):
 
 def create_auth_token(user_id, email, role):
     token = secrets.token_urlsafe(32)
+    now = datetime.now(timezone.utc)
     token_data = {
         "token": token,
         "user_id": user_id,
         "email": email,
         "role": role,
-        "created_at": datetime.utcnow(),
-        "expires_at": datetime.utcnow() + timedelta(days=7),
+        "created_at": now,
+        "expires_at": now + timedelta(days=7),
     }
     fs_client.collection(TOKENS_COLLECTION).document(token).set(token_data)
     return token
@@ -34,6 +36,7 @@ def verify_token(token: str):
     if not doc.exists:
         return None
     data = doc.to_dict()
-    if data["expires_at"] < datetime.utcnow():
+    now = datetime.now(timezone.utc)
+    if data["expires_at"] < now:
         return None
     return data

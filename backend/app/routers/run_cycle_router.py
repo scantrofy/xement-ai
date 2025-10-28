@@ -6,16 +6,78 @@ from app.services.firestore_service import fs_client
 from app.services.gemini_service import get_recommendation
 from app.services.energy_verify import verify_energy_saving
 from app.middleware.auth import require_auth
+from app.routers.config_router import DEFAULT_THRESHOLDS
 
 router = APIRouter(prefix="/run_cycle", tags=["Operations"])
 
-def check_anomalies(state: dict):
-    """Detect anomalies in plant operation state"""
+def check_anomalies(state: dict, thresholds: dict = None):
+    """
+    Detect anomalies in plant operation state with comprehensive checks.
+    Uses dynamic thresholds from config or falls back to defaults.
+    """
+    if thresholds is None:
+        thresholds = DEFAULT_THRESHOLDS
+    
     anomalies = []
-    if state.get("grinding_efficiency", 100) < 82:
+    
+    # Grinding efficiency checks
+    grinding_eff = state.get("grinding_efficiency", 100)
+    ge_thresholds = thresholds.get("grinding_efficiency", {})
+    if grinding_eff < ge_thresholds.get("critical_min", 82):
         anomalies.append("low_grinding_efficiency")
-    if state.get("kiln_temp", 0) > 1500:
+    elif grinding_eff < ge_thresholds.get("warning_min", 88):
+        anomalies.append("suboptimal_grinding_efficiency")
+    
+    # Kiln temperature checks
+    kiln_temp = state.get("kiln_temp", 0)
+    kt_thresholds = thresholds.get("kiln_temp", {})
+    if kiln_temp > kt_thresholds.get("critical_max", 1500):
         anomalies.append("high_kiln_temp")
+    elif kiln_temp > kt_thresholds.get("warning_max", 1480):
+        anomalies.append("elevated_kiln_temp")
+    elif kiln_temp < kt_thresholds.get("warning_min", 1400):
+        anomalies.append("low_kiln_temp")
+    
+    # Energy consumption checks
+    energy_use = state.get("energy_use", 0)
+    eu_thresholds = thresholds.get("energy_use", {})
+    if energy_use > eu_thresholds.get("critical_max", 170):
+        anomalies.append("high_energy_consumption")
+    elif energy_use > eu_thresholds.get("warning_max", 160):
+        anomalies.append("elevated_energy_consumption")
+    
+    # Emissions checks
+    emissions = state.get("emissions_CO2", 0)
+    em_thresholds = thresholds.get("emissions_CO2", {})
+    if emissions > em_thresholds.get("critical_max", 120):
+        anomalies.append("high_emissions")
+    elif emissions > em_thresholds.get("warning_max", 110):
+        anomalies.append("elevated_emissions")
+    
+    # Product quality checks
+    quality = state.get("product_quality_index", 100)
+    pq_thresholds = thresholds.get("product_quality_index", {})
+    if quality < pq_thresholds.get("critical_min", 75):
+        anomalies.append("low_product_quality")
+    elif quality < pq_thresholds.get("warning_min", 80):
+        anomalies.append("suboptimal_product_quality")
+    
+    # Fan speed checks
+    fan_speed = state.get("fan_speed", 0)
+    fs_thresholds = thresholds.get("fan_speed", {})
+    if fan_speed > fs_thresholds.get("warning_max", 85):
+        anomalies.append("high_fan_speed")
+    elif fan_speed < fs_thresholds.get("warning_min", 65):
+        anomalies.append("low_fan_speed")
+    
+    # Feed rate checks
+    feed_rate = state.get("feed_rate", 0)
+    fr_thresholds = thresholds.get("feed_rate", {})
+    if feed_rate > fr_thresholds.get("warning_max", 120):
+        anomalies.append("high_feed_rate")
+    elif feed_rate < fr_thresholds.get("warning_min", 90):
+        anomalies.append("low_feed_rate")
+    
     return {"anomaly_flag": bool(anomalies), "anomalies": anomalies}
 
 @router.post("/")
@@ -28,8 +90,9 @@ def run_cycle(user=Depends(require_auth)):
     4. Verify energy savings
     5. Log results in Firestore
     """
-    if user.get("role") != "admin":
-        raise HTTPException(status_code=403, detail="Only admin users can run this operation")
+    # Allow both admin and operator to run cycles
+    # if user.get("role") != "admin":
+    #     raise HTTPException(status_code=403, detail="Only admin users can run this operation")
 
     client = bigquery.Client()
     query = """

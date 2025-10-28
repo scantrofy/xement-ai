@@ -12,7 +12,7 @@ const Logo = ({
 
   const sizeClasses = {
     small: 'h-8 w-auto',
-    medium: 'h-10 w-auto',
+    medium: 'h-11 w-auto',
     large: 'h-12 w-auto',
     xlarge: 'h-16 w-auto'
   };

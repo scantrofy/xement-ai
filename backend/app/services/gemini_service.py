@@ -1,28 +1,15 @@
 import os
 import json
-import google.auth
-from google.auth.transport.requests import Request
-import google.generativeai as genai
-
-def configure_genai():
-    """
-    Configure Gemini for both local and Cloud Run environments.
-    - Locally: use GEMINI_API_KEY (for manual testing).
-    - Cloud Run: use Application Default Credentials (ADC) from service account.
-    """
-    if os.getenv("GEMINI_API_KEY"):
-        genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-    else:
-        creds, _ = google.auth.default(
-            scopes=["https://www.googleapis.com/auth/cloud-platform"]
-        )
-        creds.refresh(Request())
-        genai.configure(credentials=creds)
-
+import vertexai
+from vertexai.generative_models import GenerativeModel
 
 def get_recommendation(state_dict: dict) -> dict:
-    configure_genai()
-    model = genai.GenerativeModel("gemini-2.5-flash")
+    # Initialize Vertex AI with project and location
+    project_id = os.getenv("GOOGLE_CLOUD_PROJECT", "xement-ai")
+    location = "us-central1"
+    
+    vertexai.init(project=project_id, location=location)
+    model = GenerativeModel("gemini-2.5-flash")
 
     prompt = f"""
     You are an AI assistant optimizing cement plant energy use.

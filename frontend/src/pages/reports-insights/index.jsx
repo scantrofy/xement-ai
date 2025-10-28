@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useHistoryData, useLatestState } from '../../api/hooks';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useHistoryData, useLatestState, useBaselines } from '../../api/hooks';
 import { LoadingScreen } from '../../components/ui';
 import SummaryCards from './components/SummaryCards';
 import EnergyTrendChart from './components/EnergyTrendChart';
@@ -12,6 +12,7 @@ import { Download, FileText, TrendingDown, Zap, CheckCircle } from 'lucide-react
 const ReportsInsights = () => {
   const { data: historyData, isLoading: isLoadingHistory } = useHistoryData();
   const { data: latestData, isLoading: isLoadingLatest } = useLatestState();
+  const { data: baselines, isLoading: isLoadingBaselines } = useBaselines();
   
   const [reportPeriod, setReportPeriod] = useState('weekly'); // 'daily' or 'weekly'
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
@@ -34,34 +35,57 @@ const ReportsInsights = () => {
       ? historyData.slice(0, 24) // Last 24 hours
       : historyData.slice(0, 168); // Last 7 days (168 hours)
 
+    console.log(`[Reports] Calculating metrics for ${reportPeriod} period with ${periodData.length} data points`);
+
     const avgEnergyUse = periodData.reduce((sum, d) => sum + (d.energy_use || 0), 0) / periodData.length;
-    const avgPrevEnergy = periodData.reduce((sum, d) => sum + (d.prev_energy_use || 0), 0) / periodData.length;
-    const energySavings = ((avgPrevEnergy - avgEnergyUse) / avgPrevEnergy) * 100;
     
-    const avgEmissions = periodData.reduce((sum, d) => sum + (d.emissions || 0), 0) / periodData.length;
-    const baselineEmissions = 900; // Baseline emissions
-    const co2Reduction = ((baselineEmissions - avgEmissions) / baselineEmissions) * 100;
+    // Calculate energy savings by comparing current period to baseline (from API or default)
+    const baselineEnergy = baselines?.baseline_energy || 175; // Baseline energy consumption (kWh/ton)
+    const energySavings = avgEnergyUse > 0 && baselineEnergy > 0
+      ? ((baselineEnergy - avgEnergyUse) / baselineEnergy) * 100
+      : 0;
+    
+    // Calculate CO2 reduction
+    const avgEmissions = periodData.reduce((sum, d) => sum + (d.emissions_CO2 || d.emissions || 0), 0) / periodData.length;
+    const baselineEmissions = baselines?.baseline_emissions || 130; // Baseline emissions (kg CO2/ton)
+    const co2Reduction = avgEmissions > 0 && baselineEmissions > 0
+      ? ((baselineEmissions - avgEmissions) / baselineEmissions) * 100
+      : 0;
 
+    // Calculate efficiency improvement
     const avgEfficiency = periodData.reduce((sum, d) => sum + (d.grinding_efficiency || 0), 0) / periodData.length;
-    const baselineEfficiency = 85;
-    const efficiencyImprovement = ((avgEfficiency - baselineEfficiency) / baselineEfficiency) * 100;
+    const baselineEfficiency = baselines?.baseline_efficiency || 85; // Baseline grinding efficiency (%)
+    const efficiencyImprovement = avgEfficiency > 0 && baselineEfficiency > 0
+      ? ((avgEfficiency - baselineEfficiency) / baselineEfficiency) * 100
+      : 0;
 
-    const avgQuality = periodData.reduce((sum, d) => sum + (d.product_quality || 0), 0) / periodData.length;
+    // Calculate quality score
+    const avgQuality = periodData.reduce((sum, d) => sum + (d.product_quality_index || d.product_quality || 0), 0) / periodData.length;
 
     // Estimate optimizations applied (based on energy improvements)
-    const totalOptimizations = Math.floor(energySavings * 2.5);
+    const totalOptimizations = Math.max(0, Math.floor(Math.abs(energySavings) * 2.5));
 
-    return {
-      avgEnergyUse: avgEnergyUse.toFixed(2),
-      energySavings: energySavings.toFixed(2),
-      totalOptimizations: Math.max(0, totalOptimizations),
-      co2Reduction: co2Reduction.toFixed(2),
-      efficiencyImprovement: efficiencyImprovement.toFixed(2),
-      qualityScore: avgQuality.toFixed(1),
+    // Helper function to ensure valid number output
+    const safeNumber = (value, decimals = 2) => {
+      if (!isFinite(value) || isNaN(value)) return '0';
+      return value.toFixed(decimals);
     };
+
+    const result = {
+      avgEnergyUse: safeNumber(avgEnergyUse, 2),
+      energySavings: safeNumber(energySavings, 2),
+      totalOptimizations: Math.max(0, totalOptimizations),
+      co2Reduction: safeNumber(co2Reduction, 2),
+      efficiencyImprovement: safeNumber(efficiencyImprovement, 2),
+      qualityScore: safeNumber(avgQuality, 1),
+    };
+
+    console.log(`[Reports] Metrics calculated:`, result);
+    return result;
   };
 
-  const metrics = calculateMetrics();
+  // Memoize metrics calculation to recalculate when reportPeriod, historyData, or baselines change
+  const metrics = useMemo(() => calculateMetrics(), [historyData, reportPeriod, baselines]);
 
   // Generate AI insights based on data
   useEffect(() => {
@@ -213,7 +237,7 @@ const ReportsInsights = () => {
     }
   };
 
-  if (isLoadingHistory || isLoadingLatest) {
+  if (isLoadingHistory || isLoadingLatest || isLoadingBaselines) {
     return (
       <LoadingScreen 
         message="Loading report data..."
@@ -227,7 +251,7 @@ const ReportsInsights = () => {
     <div className="min-h-screen bg-background text-text-primary p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mt-6">
           <div>
             <h1 className="text-3xl font-bold text-text-primary flex items-center gap-3">
               <FileText className="w-8 h-8 text-primary" />

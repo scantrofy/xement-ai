@@ -25,32 +25,35 @@ export const AuthProvider = ({ children }) => {
   const [authToken, setAuthToken] = useState(null);
 
   useEffect(() => {
+    // Check if user is authenticated via localStorage
+    const isAuth = localStorage.getItem('isAuthenticated') === 'true';
+    
     // Listen to Firebase auth state changes
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        // User is signed in
-        const token = await firebaseUser.getIdToken();
-        setFirebaseUser(firebaseUser);
-        setAuthToken(token);
+      if (firebaseUser || (isAuth && localStorage.getItem('authToken'))) {
+        // User is signed in (either via Firebase or backend)
+        if (firebaseUser) {
+          setFirebaseUser(firebaseUser);
+        }
+        
+        // Get custom token from localStorage (set during login)
+        const customToken = localStorage.getItem('authToken');
+        setAuthToken(customToken);
         
         // Get additional user data from localStorage
         const userRole = localStorage.getItem('userRole');
         const userName = localStorage.getItem('userName');
         const userOrganization = localStorage.getItem('userOrganization');
+        const userEmail = localStorage.getItem('userEmail');
         
         setUser({
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
+          uid: firebaseUser?.uid || userEmail,
+          email: firebaseUser?.email || userEmail,
           role: userRole,
-          name: userName || firebaseUser.displayName,
+          name: userName || firebaseUser?.displayName,
           organization: userOrganization,
         });
         setIsAuthenticated(true);
-        
-        // Store token in localStorage for API calls
-        localStorage.setItem('authToken', token);
-        localStorage.setItem('isAuthenticated', 'true');
-        localStorage.setItem('userEmail', firebaseUser.email);
       } else {
         // User is signed out
         setFirebaseUser(null);

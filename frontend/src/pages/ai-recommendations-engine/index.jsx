@@ -189,7 +189,7 @@ const AIRecommendationsEngine = () => {
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mt-6">
           <div>
             <h1 className="text-3xl font-bold text-text-primary">AI Recommendations Engine</h1>
             <p className="text-text-secondary mt-1">
@@ -222,8 +222,178 @@ const AIRecommendationsEngine = () => {
         </div>
 
 
+        {/* Loading State - Cycle Running - Show Skeleton Loaders */}
+        {runCycleMutation?.isPending && (
+          <>
+            {/* Skeleton for Gemini AI Recommendations and Impact Overview */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Skeleton for Gemini AI Table */}
+              <div className="bg-surface rounded-lg border border-border-medium p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex-1">
+                    <div className="h-6 bg-surface-light rounded w-64 mb-2 animate-pulse"></div>
+                    <div className="h-4 bg-surface-light rounded w-96 animate-pulse"></div>
+                  </div>
+                  <div className="h-6 bg-surface-light rounded w-32 animate-pulse"></div>
+                </div>
+                
+                {/* Skeleton Table */}
+                <div className="overflow-x-auto mb-6">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-border-medium">
+                        <th className="text-left py-3 px-2"><div className="h-4 bg-surface-light rounded w-20 animate-pulse"></div></th>
+                        <th className="text-left py-3 px-2"><div className="h-4 bg-surface-light rounded w-16 animate-pulse"></div></th>
+                        <th className="text-left py-3 px-2"><div className="h-4 bg-surface-light rounded w-24 animate-pulse"></div></th>
+                        <th className="text-left py-3 px-2"><div className="h-4 bg-surface-light rounded w-16 animate-pulse"></div></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[1, 2, 3].map((i) => (
+                        <tr key={i} className="border-b border-border-light">
+                          <td className="py-3 px-2"><div className="h-4 bg-surface-light rounded w-32 animate-pulse"></div></td>
+                          <td className="py-3 px-2"><div className="h-4 bg-surface-light rounded w-16 animate-pulse"></div></td>
+                          <td className="py-3 px-2"><div className="h-4 bg-surface-light rounded w-16 animate-pulse"></div></td>
+                          <td className="py-3 px-2"><div className="h-6 bg-surface-light rounded w-12 animate-pulse"></div></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Skeleton for Energy Savings & System Status */}
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="bg-surface-light rounded-lg p-4 border border-border-light">
+                    <div className="h-5 bg-surface-medium rounded w-32 mb-3 animate-pulse"></div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <div className="h-4 bg-surface-medium rounded w-20 animate-pulse"></div>
+                        <div className="h-6 bg-surface-medium rounded w-12 animate-pulse"></div>
+                      </div>
+                      <div className="flex justify-between">
+                        <div className="h-4 bg-surface-medium rounded w-20 animate-pulse"></div>
+                        <div className="h-4 bg-surface-medium rounded w-16 animate-pulse"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-surface-light rounded-lg p-4 border border-border-light">
+                    <div className="h-5 bg-surface-medium rounded w-32 mb-3 animate-pulse"></div>
+                    <div className="h-4 bg-surface-medium rounded w-40 animate-pulse"></div>
+                  </div>
+                </div>
+
+                {/* Skeleton for AI Analysis */}
+                <div className="mt-6 bg-blue-50 dark:bg-blue-900/10 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+                  <div className="h-5 bg-blue-200 dark:bg-blue-800 rounded w-24 mb-3 animate-pulse"></div>
+                  <div className="space-y-2">
+                    <div className="h-4 bg-blue-100 dark:bg-blue-900/20 rounded w-full animate-pulse"></div>
+                    <div className="h-4 bg-blue-100 dark:bg-blue-900/20 rounded w-5/6 animate-pulse"></div>
+                    <div className="h-4 bg-blue-100 dark:bg-blue-900/20 rounded w-4/6 animate-pulse"></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Skeleton for Impact Overview */}
+              <div className="bg-surface rounded-lg border border-border-medium p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex-1">
+                    <div className="h-6 bg-surface-light rounded w-48 mb-2 animate-pulse"></div>
+                    <div className="h-4 bg-surface-light rounded w-64 animate-pulse"></div>
+                  </div>
+                  <div className="h-6 bg-surface-light rounded w-32 animate-pulse"></div>
+                </div>
+
+                {/* Skeleton Metric Cards */}
+                <div className="space-y-4">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="bg-surface-light rounded-lg p-4 border border-border-light">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="h-4 bg-surface-medium rounded w-32 animate-pulse"></div>
+                        <div className="h-4 bg-surface-medium rounded w-16 animate-pulse"></div>
+                      </div>
+                      <div className="h-8 bg-surface-medium rounded w-24 animate-pulse"></div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Skeleton Chart */}
+                <div className="mt-6 bg-surface-light rounded-lg p-4 border border-border-light">
+                  <div className="h-5 bg-surface-medium rounded w-40 mb-4 animate-pulse"></div>
+                  <div className="h-48 bg-surface-medium rounded animate-pulse"></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Skeleton for Optimization Recommendations */}
+            <div className="mt-6 bg-surface rounded-lg border border-border-medium p-6">
+              <div className="h-6 bg-surface-light rounded w-64 mb-2 animate-pulse"></div>
+              <div className="h-4 bg-surface-light rounded w-48 mb-6 animate-pulse"></div>
+              
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="bg-surface-light rounded-lg p-6 border border-border-light">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <div className="h-6 bg-surface-medium rounded w-64 mb-2 animate-pulse"></div>
+                        <div className="h-4 bg-surface-medium rounded w-96 animate-pulse"></div>
+                      </div>
+                      <div className="flex space-x-2">
+                        <div className="h-6 bg-surface-medium rounded w-20 animate-pulse"></div>
+                        <div className="h-6 bg-surface-medium rounded w-20 animate-pulse"></div>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-4 gap-4 mb-4">
+                      {[1, 2, 3, 4].map((j) => (
+                        <div key={j}>
+                          <div className="h-3 bg-surface-medium rounded w-16 mb-2 animate-pulse"></div>
+                          <div className="h-5 bg-surface-medium rounded w-20 animate-pulse"></div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Loading Message Overlay */}
+            <div className="fixed bottom-8 right-8 bg-primary text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 z-50">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+              <span className="font-medium">Running AI Optimization Cycle...</span>
+            </div>
+          </>
+        )}
+
+        {/* Empty State - No Data */}
+        {!aiResponse && !runCycleMutation?.isPending && (
+          <div className="bg-surface rounded-lg border border-border-medium p-12 text-center">
+            <div className="max-w-md mx-auto">
+              <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Icon name="Brain" size={40} className="text-primary" strokeWidth={2} />
+              </div>
+              <h3 className="text-2xl font-semibold text-text-primary mb-3">
+                No AI Recommendations Yet
+              </h3>
+              <p className="text-text-secondary mb-6">
+                Run an AI optimization cycle to generate intelligent recommendations for your cement production process.
+              </p>
+              <button 
+                onClick={handleRunCycle}
+                className="inline-flex items-center space-x-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors font-medium"
+              >
+                <Icon name="Play" size={18} strokeWidth={2} />
+                <span>Run AI Cycle Now</span>
+              </button>
+              <div className="mt-6 pt-6 border-t border-border-light">
+                <p className="text-sm text-text-secondary">
+                  The AI will analyze your current plant state and provide optimization suggestions to improve energy efficiency.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Gemini AI Recommendations and Impact Overview Grid */}
-        {aiResponse && (
+        {aiResponse && !runCycleMutation?.isPending && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Gemini AI Response Table */}
             <div className="bg-surface rounded-lg border border-border-medium p-6">
@@ -378,9 +548,10 @@ const AIRecommendationsEngine = () => {
         )}
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 gap-6">
-          {/* Recommendations List */}
-          <div className="bg-surface rounded-lg border border-border-medium p-6">
+        {!runCycleMutation?.isPending && (
+          <div className="grid grid-cols-1 gap-6">
+            {/* Recommendations List */}
+            <div className="bg-surface rounded-lg border border-border-medium p-6">
             <div className="mb-6">
               <h2 className="text-xl font-semibold text-text-primary">
                 Optimization Recommendations
@@ -411,6 +582,7 @@ const AIRecommendationsEngine = () => {
             )}
           </div>
         </div>
+        )}
       </div>
     </div>
   );

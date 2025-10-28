@@ -16,33 +16,33 @@ const AIInsights = ({ insights }) => {
   const getPriorityColor = (priority) => {
     switch (priority) {
       case 'high':
-        return 'border-red-500 bg-red-50';
+        return 'border-red-500 bg-red-50 dark:bg-red-900/20';
       case 'medium':
-        return 'border-yellow-500 bg-yellow-50';
+        return 'border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20';
       case 'low':
-        return 'border-blue-500 bg-blue-50';
+        return 'border-blue-500 bg-blue-50 dark:bg-blue-900/20';
       default:
-        return 'border-gray-500 bg-gray-50';
+        return 'border-gray-500 bg-gray-50 dark:bg-gray-900/20';
     }
   };
 
   const getPriorityBadge = (priority) => {
     switch (priority) {
       case 'high':
-        return 'bg-red-100 text-red-700 border-red-300';
+        return 'bg-red-100 text-red-700 border-red-300 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700';
       case 'medium':
-        return 'bg-yellow-100 text-yellow-700 border-yellow-300';
+        return 'bg-yellow-100 text-yellow-700 border-yellow-300 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-700';
       case 'low':
-        return 'bg-blue-100 text-blue-700 border-blue-300';
+        return 'bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700';
       default:
-        return 'bg-gray-100 text-gray-700 border-gray-300';
+        return 'bg-gray-100 text-gray-700 border-gray-300 dark:bg-gray-900/30 dark:text-gray-300 dark:border-gray-700';
     }
   };
 
   return (
     <div className="space-y-6">
       {/* AI Summary */}
-      <div className="bg-gradient-to-r from-primary-50 to-secondary-50 border border-primary-200 rounded-lg p-6">
+      <div className="bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-primary-900/20 dark:to-secondary-900/20 border border-primary-200 dark:border-primary-700 rounded-lg p-6">
         <div className="flex items-start gap-4">
           <div className="p-3 bg-primary rounded-lg">
             <Brain className="w-6 h-6 text-white" />
@@ -73,8 +73,8 @@ const AIInsights = ({ insights }) => {
                 className="bg-background border border-border rounded-lg p-4 hover:shadow-md transition-shadow"
               >
                 <div className="flex items-start gap-3">
-                  <div className={`p-2 rounded-lg ${finding.trend === 'positive' ? 'bg-green-100' : 'bg-red-100'}`}>
-                    <Icon className={`w-5 h-5 ${finding.trend === 'positive' ? 'text-green-600' : 'text-red-600'}`} />
+                  <div className={`p-2 rounded-lg ${finding.trend === 'positive' ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30'}`}>
+                    <Icon className={`w-5 h-5 ${finding.trend === 'positive' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`} />
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-medium text-text-secondary mb-1">
@@ -128,7 +128,7 @@ const AIInsights = ({ insights }) => {
               {insights.peakHours.map((hour, index) => (
                 <span
                   key={index}
-                  className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-medium border border-orange-300"
+                  className="px-3 py-1 bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300 rounded-full text-sm font-medium border border-orange-300 dark:border-orange-700"
                 >
                   {hour}:00
                 </span>
