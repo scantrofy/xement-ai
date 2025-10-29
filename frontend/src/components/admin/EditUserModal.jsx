@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, User, Building, Shield, Users } from 'lucide-react';
+import { X, User, Building, Shield, Users, Lock, Eye, EyeOff } from 'lucide-react';
 
 const EditUserModal = ({ user, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
@@ -7,9 +7,14 @@ const EditUserModal = ({ user, onClose, onSubmit }) => {
     organization: user.organization || '',
     role: user.role || 'operator',
     is_active: user.is_active !== false,
+    new_password: '',
+    confirm_password: '',
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [changePassword, setChangePassword] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -41,6 +46,21 @@ const EditUserModal = ({ user, onClose, onSubmit }) => {
 
     if (!formData.organization) {
       newErrors.organization = 'Organization is required';
+    }
+
+    // Validate password if changing
+    if (changePassword) {
+      if (!formData.new_password) {
+        newErrors.new_password = 'New password is required';
+      } else if (formData.new_password.length < 6) {
+        newErrors.new_password = 'Password must be at least 6 characters';
+      }
+
+      if (!formData.confirm_password) {
+        newErrors.confirm_password = 'Please confirm password';
+      } else if (formData.new_password !== formData.confirm_password) {
+        newErrors.confirm_password = 'Passwords do not match';
+      }
     }
 
     setErrors(newErrors);
@@ -143,8 +163,114 @@ const EditUserModal = ({ user, onClose, onSubmit }) => {
             )}
           </div>
 
+          {/* Change Password Toggle */}
+          <div className="border-t border-border-light pt-4">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={changePassword}
+                onChange={(e) => {
+                  setChangePassword(e.target.checked);
+                  if (!e.target.checked) {
+                    // Clear password fields when unchecked
+                    setFormData(prev => ({
+                      ...prev,
+                      new_password: '',
+                      confirm_password: ''
+                    }));
+                    setErrors(prev => {
+                      const { new_password, confirm_password, ...rest } = prev;
+                      return rest;
+                    });
+                  }
+                }}
+                className="w-5 h-5 rounded border-border-light bg-background text-primary focus:ring-primary cursor-pointer"
+              />
+              <span className="text-sm font-medium text-text-primary">
+                Change Password
+              </span>
+            </label>
+            <p className="mt-1 text-xs text-text-secondary ml-8">
+              Check this to set a new password for the user
+            </p>
+          </div>
+
+          {/* Password Fields (shown only when changePassword is true) */}
+          {changePassword && (
+            <>
+              {/* New Password */}
+              <div>
+                <label htmlFor="new_password" className="block text-sm font-medium text-text-primary mb-2">
+                  New Password
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock className="h-5 w-5 text-text-secondary" />
+                  </div>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    id="new_password"
+                    name="new_password"
+                    value={formData.new_password}
+                    onChange={handleInputChange}
+                    placeholder="Enter new password"
+                    className={`w-full pl-10 pr-12 py-3 bg-background border ${
+                      errors.new_password ? 'border-red-500' : 'border-border-light'
+                    } rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-text-primary placeholder-text-secondary transition-all`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-text-secondary hover:text-text-primary"
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+                {errors.new_password && (
+                  <p className="mt-1 text-sm text-red-500">{errors.new_password}</p>
+                )}
+                <p className="mt-1 text-xs text-text-secondary">
+                  Minimum 6 characters
+                </p>
+              </div>
+
+              {/* Confirm Password */}
+              <div>
+                <label htmlFor="confirm_password" className="block text-sm font-medium text-text-primary mb-2">
+                  Confirm Password
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock className="h-5 w-5 text-text-secondary" />
+                  </div>
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    id="confirm_password"
+                    name="confirm_password"
+                    value={formData.confirm_password}
+                    onChange={handleInputChange}
+                    placeholder="Confirm new password"
+                    className={`w-full pl-10 pr-12 py-3 bg-background border ${
+                      errors.confirm_password ? 'border-red-500' : 'border-border-light'
+                    } rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-text-primary placeholder-text-secondary transition-all`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-text-secondary hover:text-text-primary"
+                  >
+                    {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+                {errors.confirm_password && (
+                  <p className="mt-1 text-sm text-red-500">{errors.confirm_password}</p>
+                )}
+              </div>
+            </>
+          )}
+
           {/* Role */}
-          <div>
+          <div className="border-t border-border-light pt-4">
             <label className="block text-sm font-medium text-text-primary mb-2">
               Role
             </label>

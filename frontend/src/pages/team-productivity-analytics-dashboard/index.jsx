@@ -139,7 +139,6 @@ const TeamProductivityAnalyticsDashboard = () => {
 
   const handleExportData = (format) => {
     // Mock export functionality
-    console.log(`Exporting data in ${format} format`);
   };
 
   if (isLoading) {

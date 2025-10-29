@@ -31,15 +31,12 @@ const AlertsAnomaliesMonitor = () => {
       // If last check was within 5 minutes, just load the timestamp
       if (timeSinceLastCheck < fiveMinutes) {
         setLastChecked(timestamp);
-        console.log('✓ Recent check found, skipping immediate check');
       } else {
         // Last check was > 5 minutes ago, run a new check
-        console.log('🔍 Running anomaly check on page load...');
         loadAlertsFromCycle();
       }
     } else {
       // No previous check, run initial check
-      console.log('🔍 Running initial anomaly check...');
       loadAlertsFromCycle();
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -61,15 +58,12 @@ const AlertsAnomaliesMonitor = () => {
       setLastChecked(timestamp);
       localStorage.setItem('lastAnomalyCheckTime', timestamp.getTime().toString());
       
-      console.log('✅ Anomaly check completed:', result);
-      
       // Wait a moment for Firestore to update, then manually refetch
       setTimeout(async () => {
-        console.log('🔄 Refreshing alerts from Firestore...');
         await refetchAlerts();
       }, 2000);
     } catch (error) {
-      console.error('Failed to trigger anomaly check:', error);
+      // Error handled by React Query
     }
   };
 
@@ -281,14 +275,10 @@ const AlertsAnomaliesMonitor = () => {
       // Use the Firestore document ID, not the composite display ID
       const firestoreDocId = alert.firestoreDocId || alert.id;
       
-      console.log('🔄 Acknowledging alert:', firestoreDocId);
-      
       await acknowledgeAlertMutation.mutateAsync({
         alert_id: firestoreDocId,
         acknowledged_by: userEmail
       });
-      
-      console.log('✅ Alert acknowledged:', firestoreDocId);
       
       // Close the modal after acknowledging
       setSelectedAlert(null);
@@ -296,7 +286,6 @@ const AlertsAnomaliesMonitor = () => {
       // Refetch alerts to update the UI
       await refetchAlerts();
     } catch (error) {
-      console.error('❌ Failed to acknowledge alert:', error);
       alert('Failed to acknowledge alert. Please try again.');
     }
   };

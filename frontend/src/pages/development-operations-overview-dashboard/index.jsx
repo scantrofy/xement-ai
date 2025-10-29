@@ -31,12 +31,9 @@ const DevelopmentOperationsOverviewDashboard = () => {
 
   const handleFiltersChange = (newFilters) => {
     setFilters(newFilters);
-    // In a real app, this would trigger data refetch
-    console.log('Filters changed:', newFilters);
   };
 
   const handleDateClick = (dateData) => {
-    console.log('Date clicked:', dateData);
     // In a real app, this would drill down to detailed view
   };
 

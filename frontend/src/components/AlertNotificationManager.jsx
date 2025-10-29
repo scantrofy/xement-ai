@@ -47,8 +47,6 @@ const AlertNotificationManager = () => {
     const latestAlert = alerts[0];
     if (latestAlert && latestAlert.id !== lastAlertId) {
       // New alert detected!
-      console.log('🚨 New alert detected:', latestAlert);
-
       // Play sound if enabled
       if (soundEnabled) {
         playAlertSound(latestAlert.severity);

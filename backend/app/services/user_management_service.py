@@ -103,6 +103,15 @@ def update_user(user_id: str, user_data: UserUpdate):
         if user_data.organization is not None:
             update_dict["organization"] = user_data.organization
         
+        # Handle password change if provided
+        if user_data.new_password is not None and user_data.new_password.strip():
+            # Validate password length
+            if len(user_data.new_password) < 6:
+                raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+            # Hash the new password
+            hashed_password = hash_password(user_data.new_password)
+            update_dict["password"] = hashed_password
+        
         update_dict["updated_at"] = datetime.utcnow()
         
         user_ref.update(update_dict)

@@ -59,13 +59,10 @@ const Login = () => {
 
     setIsLoading(true);
     
-    console.log('Login attempt:', { email: formData.email, role: userRole });
-    
     try {
       // First, fetch user data from backend to get role from Firestore
       let userData = null;
       try {
-        console.log('Calling backend login API...');
         const response = await axios.post(
           `${import.meta.env.VITE_API_BASE_URL}/auth/login`,
           {
@@ -74,8 +71,6 @@ const Login = () => {
             role: userRole
           }
         );
-        
-        console.log('Backend login successful:', response.data);
         userData = response.data.user;
         const backendToken = response.data.token;
         
@@ -87,8 +82,6 @@ const Login = () => {
         // Store backend token for API calls (this is what the backend expects)
         localStorage.setItem('authToken', backendToken);
       } catch (backendError) {
-        console.error('Backend login error:', backendError);
-        console.error('Error details:', backendError.response?.data);
         // Handle different types of errors appropriately
         if (backendError.response?.status === 403) {
           setApiError(backendError.response.data.detail || 'Invalid role selection.');
@@ -101,29 +94,20 @@ const Login = () => {
       
       // Then use Firebase authentication
       try {
-        console.log('Attempting Firebase login...');
         const { user, token: firebaseToken } = await login(formData.email, formData.password);
-        
-        console.log('Firebase login successful');
         // Don't overwrite authToken - keep the backend token for API calls
         // localStorage.setItem('authToken', firebaseToken); // REMOVED - we use backend token
         localStorage.setItem('firebaseToken', firebaseToken); // Store separately if needed
         localStorage.setItem('isAuthenticated', 'true');
       } catch (firebaseError) {
-        console.error('Firebase login error:', firebaseError);
-        console.error('Firebase error code:', firebaseError.code);
         // If Firebase fails but backend succeeded, we still have a valid session
         // The authToken from backend is stored in localStorage, so we can proceed
         localStorage.setItem('isAuthenticated', 'true');
-        
-        // Show a warning but don't fail the login
-        console.warn('Firebase authentication failed, but backend authentication succeeded');
       }
       
       // Navigate to dashboard
       navigate('/overview-dashboard');
     } catch (error) {
-      console.error('Login error:', error);
       let errorMessage = 'Login failed. Please try again.';
       if (error.code === 'auth/user-not-found') {
         errorMessage = 'No user found with this email.';

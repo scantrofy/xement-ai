@@ -35,8 +35,6 @@ const ReportsInsights = () => {
       ? historyData.slice(0, 24) // Last 24 hours
       : historyData.slice(0, 168); // Last 7 days (168 hours)
 
-    console.log(`[Reports] Calculating metrics for ${reportPeriod} period with ${periodData.length} data points`);
-
     const avgEnergyUse = periodData.reduce((sum, d) => sum + (d.energy_use || 0), 0) / periodData.length;
     
     // Calculate energy savings by comparing current period to baseline (from API or default)
@@ -80,7 +78,6 @@ const ReportsInsights = () => {
       qualityScore: safeNumber(avgQuality, 1),
     };
 
-    console.log(`[Reports] Metrics calculated:`, result);
     return result;
   };
 

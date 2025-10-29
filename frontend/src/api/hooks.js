@@ -84,10 +84,8 @@ const shouldUseMockData = () => {
   return false;
 };
 
-// Request interceptor for adding auth token and logging
+// Request interceptor for adding auth token
 api?.interceptors?.request?.use((config) => {
-  console.log(`API Request: ${config?.method?.toUpperCase()} ${config?.url}`);
-  
   // Add Firebase auth token to protected endpoints
   const token = getAuthToken();
   if (token) {
@@ -101,15 +99,7 @@ api?.interceptors?.request?.use((config) => {
 api?.interceptors?.response?.use(
   (response) => response,
   (error) => {
-    console.error('API Error:', error?.response?.data || error?.message);
-    
-    // Better error handling for network errors
-    if (error?.code === 'ECONNABORTED') {
-      console.error('Request timeout - check your API endpoint configuration');
-    } else if (error?.message === 'Network Error') {
-      console.error('Network Error - ensure VITE_API_BASE_URL is properly configured');
-      console.info('Falling back to mock data for development...');
-    }
+    // Silent error handling - errors will be caught by React Query
     return Promise.reject(error);
   }
 );
@@ -121,7 +111,6 @@ export const useLatestState = (filters = {}) => {
     queryFn: async () => {
       // Use mock data if API is not configured or in development
       if (shouldUseMockData()) {
-        console.log('Using mock data for latest state with filters:', filters);
         
         // Get current time and calculate time window based on period
         const now = new Date();
@@ -170,8 +159,6 @@ export const useLatestState = (filters = {}) => {
           period_end: now.toISOString()
         };
         
-        console.log('Generated mock data with timestamp:', variableMockData.timestamp);
-        
         return new Promise((resolve) => {
           setTimeout(() => resolve(variableMockData), 500); // Simulate network delay
         });
@@ -209,7 +196,6 @@ export const useLatestState = (filters = {}) => {
         
         return transformedData;
       } catch (error) {
-        console.warn('API call failed, falling back to mock data:', error?.message);
         return mockPlantData;
       }
     },
@@ -229,7 +215,6 @@ export const useRunCycle = () => {
   return useMutation({
     mutationFn: async () => {
       if (shouldUseMockData()) {
-        console.log('Using mock data for cycle run');
         return new Promise((resolve) => {
           setTimeout(() => {
             const mockData = {
@@ -248,17 +233,12 @@ export const useRunCycle = () => {
         const { data } = await api?.post('/run_cycle/');
         return data;
       } catch (error) {
-        console.warn('API call failed, returning mock cycle data:', error?.message);
         return mockRecommendations;
       }
     },
     onSuccess: (data) => {
       // Invalidate and refetch latest state after successful cycle run
       queryClient?.invalidateQueries({ queryKey: ['latestState'] });
-      console.log('Cycle run completed successfully:', data);
-    },
-    onError: (error) => {
-      console.error('Cycle run failed:', error);
     },
   });
 };
@@ -268,7 +248,6 @@ export const useRecommendation = () => {
   return useMutation({
     mutationFn: async (userInputs) => {
       if (shouldUseMockData()) {
-        console.log('Using mock data for recommendations with inputs:', userInputs);
         return new Promise((resolve) => {
           setTimeout(() => resolve(mockRecommendations), 1000);
         });
@@ -278,12 +257,8 @@ export const useRecommendation = () => {
         const { data } = await api?.post('/recommendation', userInputs);
         return data;
       } catch (error) {
-        console.warn('API call failed, returning mock recommendations:', error?.message);
         return mockRecommendations;
       }
-    },
-    onError: (error) => {
-      console.error('Recommendation request failed:', error);
     },
   });
 };
@@ -293,7 +268,6 @@ export const useSimulateFuel = () => {
   return useMutation({
     mutationFn: async (simulationParams = {}) => {
       if (shouldUseMockData()) {
-        console.log('Using mock data for fuel simulation with params:', simulationParams);
         return new Promise((resolve) => {
           setTimeout(() => resolve(mockSimulationData), 800);
         });
@@ -303,12 +277,8 @@ export const useSimulateFuel = () => {
         const { data } = await api?.get('/simulate_fuel', { params: simulationParams });
         return data;
       } catch (error) {
-        console.warn('API call failed, returning mock simulation data:', error?.message);
         return mockSimulationData;
       }
-    },
-    onError: (error) => {
-      console.error('Fuel simulation failed:', error);
     },
   });
 };
@@ -372,7 +342,6 @@ export const useBaselines = () => {
         const { data } = await api?.get('/config/baselines');
         return data;
       } catch (error) {
-        console.error('Failed to fetch baselines:', error);
         // Return default baselines as fallback
         return {
           baseline_energy: 175.0,
@@ -401,7 +370,6 @@ export const useRecentAlerts = (options = {}) => {
         const { data } = await api?.get(`/alerts/recent?${params.toString()}`);
         return data?.alerts || [];
       } catch (error) {
-        console.error('Failed to fetch recent alerts:', error);
         return [];
       }
     },
@@ -442,7 +410,6 @@ export const useCheckAnomalies = () => {
       } catch (error) {
         // If auth error or API unavailable, return mock success
         if (error?.response?.status === 401 || error?.response?.status === 403 || !error?.response) {
-          console.warn('⚠️ Alerts API unavailable or auth required, using mock mode');
           return { 
             success: true, 
             message: 'Mock check completed',
@@ -524,7 +491,6 @@ export const useHistoryData = () => {
         
         return transformedHistory;
       } catch (error) {
-        console.warn('History API call failed, falling back to mock data:', error?.message);
         // Fallback to mock data if API fails (168 records for weekly reports)
         // Add trend: recent data has better performance
         const mockHistoryData = Array.from({ length: 168 }, (_, index) => {

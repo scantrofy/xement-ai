@@ -17,17 +17,8 @@ const validateFirebaseConfig = () => {
   const missingKeys = requiredKeys.filter(key => !firebaseConfig[key]);
   
   if (missingKeys.length > 0) {
-    console.error('❌ Missing Firebase configuration:', missingKeys);
-    console.error('Current config:', {
-      apiKey: firebaseConfig.apiKey ? '✓ Set' : '✗ Missing',
-      authDomain: firebaseConfig.authDomain ? '✓ Set' : '✗ Missing',
-      projectId: firebaseConfig.projectId ? '✓ Set' : '✗ Missing',
-      appId: firebaseConfig.appId ? '✓ Set' : '✗ Missing',
-    });
     throw new Error(`Firebase configuration incomplete. Missing: ${missingKeys.join(', ')}`);
   }
-  
-  console.log('✅ Firebase configuration validated');
 };
 
 // Validate before initializing

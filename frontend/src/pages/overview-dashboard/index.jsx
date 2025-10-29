@@ -23,7 +23,6 @@ const OverviewDashboard = () => {
 
   // Handle filter changes
   const handleFilterChange = (newFilters) => {
-    console.log('🔍 Dashboard filters updated:', newFilters);
     setFilters(newFilters);
     // The useLatestState hook will automatically refetch with new filters
   };

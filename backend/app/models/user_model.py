@@ -19,6 +19,7 @@ class UserUpdate(BaseModel):
     role: Optional[str] = None
     is_active: Optional[bool] = None
     organization: Optional[str] = None
+    new_password: Optional[str] = None  # Optional password change
 
 class UserResponse(BaseModel):
     id: str

@@ -28,13 +28,11 @@ const DashboardFilters = ({ filters, onFilterChange, onRefresh, isRefreshing }) 
 
   const handlePlantChange = (e) => {
     const value = e.target.value;
-    console.log('🏭 Plant filter changed to:', value);
     setSelectedPlant(value);
     onFilterChange?.({ plant: value, period: selectedPeriod });
   };
 
   const handlePeriodChange = (value) => {
-    console.log('⏰ Period filter changed to:', value);
     setSelectedPeriod(value);
     onFilterChange?.({ plant: selectedPlant, period: value });
   };
