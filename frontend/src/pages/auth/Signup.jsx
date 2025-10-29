@@ -161,7 +161,7 @@ const Signup = () => {
 
         {/* Footer */}
         <div className="mt-6 text-center text-sm text-text-secondary">
-          <p>© 2025 Xement.AI. All rights reserved.</p>
+          <p>© 2025 XementAI. All rights reserved.</p>
         </div>
       </div>
     </div>

@@ -154,7 +154,7 @@ const Login = () => {
             Sign In to Your Account
           </h1>
           <p className="text-text-secondary">
-            Access the Xement.AI cement manufacturing dashboard
+            Access the XementAI cement manufacturing dashboard
           </p>
         </div>
 
@@ -293,7 +293,7 @@ const Login = () => {
 
         {/* Footer */}
         <div className="mt-6 text-center text-sm text-text-secondary">
-          <p>© 2025 Xement.AI. All rights reserved.</p>
+          <p>© 2025 XementAI. All rights reserved.</p>
         </div>
       </div>
     </div>

@@ -24,7 +24,7 @@ export const generatePDFReport = async ({ period, metrics, insights, historyData
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(24);
   doc.setFont('helvetica', 'bold');
-  doc.text('Xement.AI', 20, 20);
+  doc.text('XementAI', 20, 20);
   
   doc.setFontSize(12);
   doc.setFont('helvetica', 'normal');
@@ -189,7 +189,7 @@ export const generatePDFReport = async ({ period, metrics, insights, historyData
       { align: 'center' }
     );
     doc.text(
-      'Xement.AI - Smart Cement Manufacturing Platform',
+      'XementAI - Smart Cement Manufacturing Platform',
       20,
       pageHeight - 10
     );

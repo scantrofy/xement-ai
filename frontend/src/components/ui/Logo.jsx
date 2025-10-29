@@ -32,7 +32,7 @@ const Logo = ({
     <div className={`flex items-center space-x-3 ${className}`}>
       <img 
         src={logoSrc}
-        alt="Xement AI Logo"
+        alt="XementAI Logo"
         className={`${sizeClasses[size]} transition-opacity duration-200`}
         onError={(e) => {
           // Fallback to icon if image fails to load

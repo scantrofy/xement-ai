@@ -117,7 +117,7 @@ Current Plant State:
 Action Required:
 {'IMMEDIATE ATTENTION REQUIRED - Critical anomalies detected!' if severity == 'critical' else 'Please review and monitor the situation.'}
 
-This is an automated alert from Xement AI Monitoring System.
+This is an automated alert from XementAI Monitoring System.
 Login to the dashboard for detailed analysis and recommendations.
 """
         
@@ -169,12 +169,12 @@ Login to the dashboard for detailed analysis and recommendations.
         <p>{'<strong>IMMEDIATE ATTENTION REQUIRED</strong> - Critical anomalies detected in the production system!' if severity == 'critical' else 'Please review and monitor the situation closely.'}</p>
       </div>
       
-      <p>Login to the <a href="{os.getenv('FRONTEND_URL', 'https://your-frontend-url.com')}">Xement AI Dashboard</a> for detailed analysis and AI-powered recommendations.</p>
+      <p>Login to the <a href="{os.getenv('FRONTEND_URL', 'https://your-frontend-url.com')}">XementAI Dashboard</a> for detailed analysis and AI-powered recommendations.</p>
     </div>
     
     <div class="footer">
-      <p>This is an automated alert from Xement AI Monitoring System.</p>
-      <p>© 2025 Xement AI - Smart Cement Operations</p>
+      <p>This is an automated alert from XementAI Monitoring System.</p>
+      <p>© 2025 XementAI - Smart Cement Operations</p>
     </div>
   </body>
 </html>
@@ -210,12 +210,12 @@ def send_test_email(recipient: str):
     
     try:
         msg = MIMEMultipart()
-        msg["Subject"] = "Xement AI - Email Configuration Test"
+        msg["Subject"] = "XementAI - Email Configuration Test"
         msg["From"] = FROM_EMAIL
         msg["To"] = recipient
         
         body = """
-This is a test email from Xement AI Monitoring System.
+This is a test email from XementAI Monitoring System.
 
 If you received this email, your email configuration is working correctly.
 
@@ -224,7 +224,7 @@ Email alerts will be sent for:
 - Warning anomalies (to operators)
 
 Best regards,
-Xement AI Team
+XementAI Team
 """
         msg.attach(MIMEText(body, "plain"))
         

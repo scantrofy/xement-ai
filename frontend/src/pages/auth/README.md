@@ -1,7 +1,7 @@
 # Authentication System
 
 ## Overview
-The Xement.AI dashboard includes a complete authentication system with role-based access control.
+The XementAI dashboard includes a complete authentication system with role-based access control.
 
 ## Features
 

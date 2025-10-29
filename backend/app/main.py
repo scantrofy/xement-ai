@@ -10,7 +10,7 @@ from app.routers import (
 )
 
 # ----- Initialize FastAPI -----
-app = FastAPI(title="Xement AI Backend")
+app = FastAPI(title="XementAI Backend")
 
 # ----- Google Cloud Logging -----
 client = google.cloud.logging.Client()
@@ -67,4 +67,4 @@ else:
 @app.get("/")
 def root():
     logger.info("Health check endpoint called")
-    return {"status": "Xement AI backend running"}
+    return {"status": "XementAI backend running"}

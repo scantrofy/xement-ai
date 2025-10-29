@@ -1,4 +1,4 @@
-# Xement.AI - AI-Powered Smart Cement Operations
+# XementAI - AI-Powered Smart Cement Operations
 
 An intelligent cement manufacturing optimization platform made for JK Cement that leverages AI/ML models, real-time monitoring, and predictive analytics to optimize energy consumption, reduce emissions, and improve production efficiency in cement plants.
 
