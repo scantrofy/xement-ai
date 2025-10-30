@@ -1,22 +1,51 @@
+import os
+import logging
+from pathlib import Path
+from dotenv import load_dotenv
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import google.cloud.logging
-import logging
-import os
+
+# ===== Environment Setup =====
+# Load environment variables before importing app modules
+root_dir = Path(__file__).parent.parent.parent
+load_dotenv(dotenv_path=root_dir / '.env')
+
+# Configure Google Cloud credentials
+credentials_path = root_dir / 'xement_iam.json'
+existing_creds = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
+
+if existing_creds and not os.path.isabs(existing_creds):
+    # Convert relative path to absolute
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = str(root_dir / existing_creds)
+elif not existing_creds and credentials_path.exists():
+    # Set default credentials path
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = str(credentials_path)
 
 from app.routers import (
-    auth_router, recommendation_router, simulate_router, run_cycle_router, public_router, user_management_router, config_router, alerts_router
+    auth_router, recommendation_router, simulate_router, run_cycle_router, public_router, user_management_router, config_router, alerts_router, chatbot_router
 )
 
 # ----- Initialize FastAPI -----
 app = FastAPI(title="XementAI Backend")
 
-# ----- Google Cloud Logging -----
-client = google.cloud.logging.Client()
-client.setup_logging()
+# ----- Logging Setup -----
+# Configure console logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[logging.StreamHandler()]
+)
 logger = logging.getLogger("xement-ai")
-logger.setLevel(logging.INFO)
+
+# Also setup Google Cloud Logging (optional)
+try:
+    client = google.cloud.logging.Client()
+    client.setup_logging()
+except Exception as e:
+    logger.warning(f"Could not setup Google Cloud Logging: {e}")
 
 # ----- CORS for Frontend -----
 app.add_middleware(
@@ -50,6 +79,7 @@ if not IS_DEVELOPMENT:
     app.include_router(run_cycle_router.router)
     app.include_router(config_router.router)
     app.include_router(alerts_router.router)
+    app.include_router(chatbot_router.router)
 else:
     from fastapi import APIRouter
     
@@ -61,6 +91,7 @@ else:
     dev_router.include_router(run_cycle_router.router)
     dev_router.include_router(config_router.router)
     dev_router.include_router(alerts_router.router)
+    dev_router.include_router(chatbot_router.router)
     
     app.include_router(dev_router)
 

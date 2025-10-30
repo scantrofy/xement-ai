@@ -13,6 +13,7 @@ const AlertNotificationManager = () => {
   const [lastAlertId, setLastAlertId] = useState(null);
   const [notificationPermission, setNotificationPermission] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(true);
   const hasInitialized = useRef(false);
 
   // Poll for alerts every 10 minutes (matches backend check frequency)
@@ -93,19 +94,23 @@ const AlertNotificationManager = () => {
         </div>
         <button
           onClick={() => {
-            const indicator = document.getElementById('alert-monitor-indicator');
-            if (indicator) {
-              indicator.style.display = indicator.style.display === 'none' ? 'block' : 'none';
-            }
+            const newExpandedState = !isExpanded;
+            setIsExpanded(newExpandedState);
+            
+            // Dispatch custom event for chatbot to listen
+            window.dispatchEvent(new CustomEvent('alertMonitorToggle', {
+              detail: { isExpanded: newExpandedState }
+            }));
           }}
-          className="p-1 hover:bg-surface-hover rounded"
-          title="Minimize"
+          className="p-1 hover:bg-surface-hover rounded transition-transform duration-200"
+          title={isExpanded ? "Minimize" : "Expand"}
+          style={{ transform: isExpanded ? 'rotate(0deg)' : 'rotate(180deg)' }}
         >
           <Icon name="ChevronDown" size={14} />
         </button>
       </div>
 
-      <div id="alert-monitor-indicator">
+      <div id="alert-monitor-indicator" style={{ display: isExpanded ? 'block' : 'none' }}>
         {/* Monitoring status */}
         <div className="flex items-center justify-between mb-2 pb-2 border-b border-border-light">
           <div className="flex items-center gap-2">

@@ -7,6 +7,7 @@ import AdminRoute from "components/AdminRoute";
 import { AuthProvider } from "contexts/AuthContext";
 import Header from "components/ui/Header";
 import Navigation from "components/ui/Navigation";
+import FloatingChatbot from "components/chatbot/FloatingChatbot";
 import OverviewDashboard from "pages/overview-dashboard";
 import AIRecommendationsEngine from "pages/ai-recommendations-engine";
 import ScenarioSimulator from "pages/scenario-simulator";
@@ -51,6 +52,8 @@ const Routes = () => {
                       <Route path="*" element={<NotFound />} />
                     </RouterRoutes>
                   </main>
+                  {/* Floating Chatbot - Available on all dashboard pages */}
+                  <FloatingChatbot />
                 </div>
               </ProtectedRoute>
             } />

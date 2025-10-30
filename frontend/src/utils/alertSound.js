@@ -19,7 +19,7 @@ const initAudioContext = () => {
  * @param {number} duration - Duration in milliseconds
  * @param {number} volume - Volume (0-1)
  */
-const playBeep = (frequency = 800, duration = 200, volume = 0.3) => {
+export const playBeep = (frequency = 800, duration = 200, volume = 0.3) => {
   try {
     const context = initAudioContext();
     const oscillator = context.createOscillator();

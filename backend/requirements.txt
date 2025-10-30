@@ -11,3 +11,4 @@ bcrypt
 email-validator
 redis
 google-cloud-logging
+python-dotenv
