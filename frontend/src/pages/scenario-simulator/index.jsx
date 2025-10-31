@@ -11,14 +11,11 @@ const ScenarioSimulator = () => {
   const simulateFuelMutation = useSimulateFuel();
 
   useEffect(() => {
-    // Load initial simulation data on component mount
     handleRunSimulation();
   }, []);
 
-  // Auto-update simulation when slider changes
   useEffect(() => {
     if (simulationData) {
-      // Debounce the simulation call
       const timeoutId = setTimeout(() => {
         handleRunSimulation();
       }, 500);
@@ -49,7 +46,6 @@ const ScenarioSimulator = () => {
                      currentSimulation?.[Math.floor(altFuelPercent / 10)] || 
                      { pred_energy_kwh_per_ton: 0, emissions_kgCO2_per_ton: 0 };
 
-  // Show loading screen on initial load
   if (!simulationData && isLoading) {
     return (
       <LoadingScreen 

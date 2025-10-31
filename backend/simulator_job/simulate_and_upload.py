@@ -98,14 +98,12 @@ def simulate_row(ts, plant_id):
         - alt_fuel reduces emissions and slightly affects energy.
         - product quality correlates with grinding_efficiency and raw mix variation.
     """
-    # Ensure timestamp is timezone-aware
     if ts.tzinfo is None:
         ts = ts.tz_localize('UTC')
     elif ts.tzinfo.utcoffset(ts) is None:
         ts = ts.tz_localize('UTC')
     else:
         ts = ts.tz_convert('UTC')
-    # Base operating envelopes per plant (slightly different baselines)
     base_kiln = random.uniform(1400, 1480) + (hash(plant_id) % 30) * 0.1
     base_grind_eff = random.uniform(78, 92)
     base_feed = random.uniform(90, 110)  # tons/hour
@@ -189,16 +187,13 @@ def generate_dataframe(num_rows=NUM_ROWS, freq_minutes=FREQ_MINUTES, plants=PLAN
     current_time = pd.Timestamp.now(tz=timezone.utc)
     if start_ts:
         start = pd.to_datetime(start_ts).tz_convert(tz.UTC)
-        # Ensure we don't generate future data
         if start > current_time:
             raise ValueError("Start timestamp cannot be in the future")
     else:
-        # Compute a start timestamp such that last row is now or earlier
         start = current_time - pd.Timedelta(minutes=(num_rows // len(plants)) * freq_minutes)
     rows = []
     ts = start
     idx = 0
-    # distribute rows across plants sequentially to create interleaved time series
     while idx < num_rows and ts <= current_time:
         for plant in plants:
             if idx >= num_rows or ts > current_time:

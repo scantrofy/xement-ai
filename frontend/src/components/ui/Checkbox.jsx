@@ -15,10 +15,8 @@ const Checkbox = React.forwardRef(({
     size = "default",
     ...props
 }, ref) => {
-    // Generate unique ID if not provided
     const checkboxId = id || `checkbox-${Math.random()?.toString(36)?.substr(2, 9)}`;
 
-    // Size variants
     const sizeClasses = {
         sm: "h-4 w-4",
         default: "h-4 w-4",
@@ -92,7 +90,6 @@ const Checkbox = React.forwardRef(({
 
 Checkbox.displayName = "Checkbox";
 
-// Checkbox Group component
 const CheckboxGroup = React.forwardRef(({
     className,
     children,

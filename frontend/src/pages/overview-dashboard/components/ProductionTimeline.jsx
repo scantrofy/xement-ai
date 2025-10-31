@@ -8,11 +8,9 @@ const ProductionTimeline = ({ data }) => {
 
   useEffect(() => {
     if (plantData) {
-      // Generate timeline data based on current plant data
       const currentTime = new Date();
       const newTimelineData = [];
       
-      // Generate 8 hours of historical data points
       for (let i = 7; i >= 0; i--) {
         const timePoint = new Date(currentTime.getTime() - i * 60 * 60 * 1000);
         const timeString = timePoint.toLocaleTimeString('en-US', { 
@@ -21,13 +19,11 @@ const ProductionTimeline = ({ data }) => {
           minute: '2-digit' 
         });
         
-        // Calculate performance indicators with realistic variations
         const baseEfficiency = plantData.grinding_efficiency || 90;
         const baseEnergy = calculateEnergyEfficiency(plantData.energy_use);
         const baseQuality = plantData.product_quality || 95;
         const baseTemp = plantData.kiln_temp || 1450;
         
-        // Add time-based variations to simulate realistic production cycles
         const timeVariation = Math.sin((i / 8) * Math.PI * 2) * 3; // Cyclical variation
         const randomVariation = (Math.random() - 0.5) * 4; // Random noise
         
@@ -44,7 +40,6 @@ const ProductionTimeline = ({ data }) => {
     }
   }, [plantData]);
 
-  // Calculate energy efficiency percentage from energy use (kWh/ton)
   const calculateEnergyEfficiency = (energyUse) => {
     if (!energyUse) return 85;
     // Convert energy use to efficiency percentage

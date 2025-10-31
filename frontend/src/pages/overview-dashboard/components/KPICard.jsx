@@ -6,12 +6,10 @@ const KPICard = ({ title, value, unit, icon, thresholds, inverse = false }) => {
     if (!val || !thresholds) return 'neutral';
     
     if (inverse) {
-      // For metrics where lower is better (like emissions)
       if (val <= thresholds?.optimal) return 'optimal';
       if (val <= thresholds?.warning) return 'warning';
       return 'critical';
     } else {
-      // For metrics where higher is better
       if (val >= thresholds?.optimal) return 'optimal';
       if (val >= thresholds?.warning) return 'warning';
       return 'critical';

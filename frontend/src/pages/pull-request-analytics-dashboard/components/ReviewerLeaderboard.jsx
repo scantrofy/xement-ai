@@ -2,7 +2,6 @@ import React from 'react';
 import Icon from '../../../components/AppIcon';
 
 const ReviewerLeaderboard = ({ pullRequests, authors }) => {
-  // Calculate reviewer metrics
   const calculateReviewerMetrics = () => {
     const reviewerStats = {};
     
@@ -21,11 +20,9 @@ const ReviewerLeaderboard = ({ pullRequests, authors }) => {
         
         reviewerStats[reviewerId].totalReviews++;
         
-        // Mock response time calculation
         const responseTime = Math.random() * 24 + 1; // 1-25 hours
         reviewerStats?.[reviewerId]?.responseTimes?.push(responseTime);
         
-        // Mock approval/changes data
         if (Math.random() > 0.3) {
           reviewerStats[reviewerId].approvals++;
         } else {
@@ -34,7 +31,6 @@ const ReviewerLeaderboard = ({ pullRequests, authors }) => {
       });
     });
     
-    // Calculate average response times and sort by performance
     const reviewerList = Object.values(reviewerStats)?.map(reviewer => {
       const avgResponseTime = reviewer?.responseTimes?.reduce((sum, time) => sum + time, 0) / reviewer?.responseTimes?.length;
       const approvalRate = (reviewer?.approvals / reviewer?.totalReviews) * 100;
@@ -47,7 +43,6 @@ const ReviewerLeaderboard = ({ pullRequests, authors }) => {
       };
     })?.filter(reviewer => reviewer?.author);
     
-    // Sort by total reviews (workload) and response time
     return reviewerList?.sort((a, b) => {
       if (b?.totalReviews !== a?.totalReviews) {
         return b?.totalReviews - a?.totalReviews;

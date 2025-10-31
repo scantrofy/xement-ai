@@ -25,22 +25,17 @@ export const AuthProvider = ({ children }) => {
   const [authToken, setAuthToken] = useState(null);
 
   useEffect(() => {
-    // Check if user is authenticated via localStorage
     const isAuth = localStorage.getItem('isAuthenticated') === 'true';
     
-    // Listen to Firebase auth state changes
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser || (isAuth && localStorage.getItem('authToken'))) {
-        // User is signed in (either via Firebase or backend)
         if (firebaseUser) {
           setFirebaseUser(firebaseUser);
         }
         
-        // Get custom token from localStorage (set during login)
         const customToken = localStorage.getItem('authToken');
         setAuthToken(customToken);
         
-        // Get additional user data from localStorage
         const userRole = localStorage.getItem('userRole');
         const userName = localStorage.getItem('userName');
         const userOrganization = localStorage.getItem('userOrganization');
@@ -55,7 +50,6 @@ export const AuthProvider = ({ children }) => {
         });
         setIsAuthenticated(true);
       } else {
-        // User is signed out
         setFirebaseUser(null);
         setUser(null);
         setAuthToken(null);
@@ -70,7 +64,6 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     });
 
-    // Cleanup subscription on unmount
     return () => unsubscribe();
   }, []);
 
@@ -105,7 +98,7 @@ export const AuthProvider = ({ children }) => {
 
   const getToken = async () => {
     if (firebaseUser) {
-      return await firebaseUser.getIdToken(true); // Force refresh
+      return await firebaseUser.getIdToken(true);
     }
     return null;
   };

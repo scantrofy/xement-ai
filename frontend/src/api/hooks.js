@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 
-// Create axios instance with base configuration using environment variable
 const api = axios?.create({
   baseURL: import.meta.env?.VITE_API_BASE_URL || 'https://YOUR-CLOUDRUN-URL.a.run.app',
   timeout: parseInt(import.meta.env?.VITE_API_TIMEOUT) || 30000,
@@ -77,16 +76,11 @@ const mockSimulationData = {
   max_emission_reduction: 19.6,
 };
 
-// Check if we should use mock data (when API is not properly configured or fails)
 const shouldUseMockData = () => {
-  // Production mode: Never use mock data
-  // Mock data is only for development when API is not available
   return false;
 };
 
-// Request interceptor for adding auth token
 api?.interceptors?.request?.use((config) => {
-  // Add Firebase auth token to protected endpoints
   const token = getAuthToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -95,11 +89,9 @@ api?.interceptors?.request?.use((config) => {
   return config;
 });
 
-// Response interceptor for error handling
 api?.interceptors?.response?.use(
   (response) => response,
   (error) => {
-    // Silent error handling - errors will be caught by React Query
     return Promise.reject(error);
   }
 );
@@ -109,14 +101,11 @@ export const useLatestState = (filters = {}) => {
   return useQuery({
     queryKey: ['latestState', filters],
     queryFn: async () => {
-      // Use mock data if API is not configured or in development
       if (shouldUseMockData()) {
         
-        // Get current time and calculate time window based on period
         const now = new Date();
         let minTimestamp = new Date(now);
         
-        // Adjust the timestamp based on the selected period
         switch(filters?.period) {
           case 'lastHour':
             minTimestamp.setHours(now.getHours() - 1);
@@ -131,16 +120,13 @@ export const useLatestState = (filters = {}) => {
             minTimestamp.setDate(now.getDate() - 7);
             break;
           default:
-            // Default to last hour
             minTimestamp.setHours(now.getHours() - 1);
         }
         
-        // Generate a random timestamp within the selected period
         const randomTime = new Date(
           minTimestamp.getTime() + Math.random() * (now.getTime() - minTimestamp.getTime())
         );
         
-        // Simulate some variability in mock data
         const variableMockData = {
           ...mockPlantData,
           plant_id: filters?.plant && filters.plant !== 'all'
@@ -153,14 +139,13 @@ export const useLatestState = (filters = {}) => {
           product_quality: mockPlantData?.product_quality + (Math.random() - 0.5) * 2,
           production_volume: mockPlantData?.production_volume + (Math.random() - 0.5) * 10,
           timestamp: randomTime.toISOString(),
-          // Add period information to the response
           period: filters?.period || 'lastHour',
           period_start: minTimestamp.toISOString(),
           period_end: now.toISOString()
         };
         
         return new Promise((resolve) => {
-          setTimeout(() => resolve(variableMockData), 500); // Simulate network delay
+          setTimeout(() => resolve(variableMockData), 500);
         });
       }
 
@@ -172,16 +157,11 @@ export const useLatestState = (filters = {}) => {
           },
         });
         
-        // Transform API response to match dashboard expectations
         const transformedData = {
           ...data,
-          // Map emissions_label to estimated emissions value
           emissions: data.emissions_label ? getEmissionsFromLabel(data.emissions_label) : 850,
-          // Map quality_label to estimated quality percentage
           product_quality: data.quality_label ? getQualityFromLabel(data.quality_label) : 95,
-          // Calculate production volume from energy use (rough estimation)
           production_volume: data.energy_use ? Math.max(100, 200 - (data.energy_use - 150) * 0.5) : 140,
-          // Add missing fields with reasonable defaults
           batch_id: data.batch_id || `B-${new Date().getFullYear()}-${String(Date.now()).slice(-4)}`,
           shift: data.shift || 'Current Shift',
           operator: data.operator || 'System Operator',
@@ -201,9 +181,8 @@ export const useLatestState = (filters = {}) => {
     },
     refetchInterval: 30000, // Auto-refresh every 30 seconds
     staleTime: 25000, // Consider data stale after 25 seconds
-    retry: shouldUseMockData() ? false : 2, // Don't retry for mock data
+    retry: shouldUseMockData() ? false : 2,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    // Always enable query now that we have fallback data
     enabled: true,
   });
 };
@@ -219,13 +198,12 @@ export const useRunCycle = () => {
           setTimeout(() => {
             const mockData = {
               ...mockRecommendations,
-              // Add some randomization to make it feel dynamic
               verified_saving_pct: mockRecommendations.verified_saving_pct + (Math.random() - 0.5) * 2,
               confidence_score: Math.min(0.99, mockRecommendations.confidence_score + (Math.random() - 0.5) * 0.1),
               execution_time: (2 + Math.random() * 3).toFixed(1) + 's',
             };
             resolve(mockData);
-          }, 1500); // Simulate processing time
+          }, 1500);
         });
       }
 
@@ -237,7 +215,6 @@ export const useRunCycle = () => {
       }
     },
     onSuccess: (data) => {
-      // Invalidate and refetch latest state after successful cycle run
       queryClient?.invalidateQueries({ queryKey: ['latestState'] });
     },
   });
@@ -322,7 +299,7 @@ const getQualityFromLabel = (label) => {
   return qualityMap[label] || 94;
 };
 
-// Predefined thresholds for different KPIs (updated to match API data ranges)
+// Predefined thresholds for different KPIs
 export const KPI_THRESHOLDS = {
   energy_use: { optimal: 180, warning: 220 }, // kWh/ton (based on your API data ~200)
   grinding_efficiency: { optimal: 90, warning: 85 }, // percentage
@@ -342,7 +319,6 @@ export const useBaselines = () => {
         const { data } = await api?.get('/config/baselines');
         return data;
       } catch (error) {
-        // Return default baselines as fallback
         return {
           baseline_energy: 175.0,
           baseline_emissions: 130.0,
@@ -392,7 +368,6 @@ export const useAcknowledgeAlert = () => {
       return data;
     },
     onSuccess: () => {
-      // Invalidate alerts query to refresh the list
       queryClient.invalidateQueries(['recentAlerts']);
     },
   });
@@ -408,7 +383,6 @@ export const useCheckAnomalies = () => {
         const { data } = await api?.post('/alerts/check-now');
         return data;
       } catch (error) {
-        // If auth error or API unavailable, return mock success
         if (error?.response?.status === 401 || error?.response?.status === 403 || !error?.response) {
           return { 
             success: true, 
@@ -420,7 +394,6 @@ export const useCheckAnomalies = () => {
       }
     },
     onSuccess: () => {
-      // Invalidate alerts query to refresh the list after check
       queryClient.invalidateQueries(['recentAlerts']);
     },
   });
@@ -431,10 +404,7 @@ export const useHistoryData = () => {
   return useQuery({
     queryKey: ['historyData'],
     queryFn: async () => {
-      // Check if we should use mock data
       if (shouldUseMockData()) {
-        // Generate 168 mock historical records (7 days of hourly data for weekly reports)
-        // Add trend: recent data (lower index) has better performance than older data
         const mockHistoryData = Array.from({ length: 168 }, (_, index) => {
           const baseTime = new Date(Date.now() - index * 60 * 60 * 1000); // Each record 1 hour apart
           const improvementFactor = index / 168; // 0 (recent) to 1 (old)
@@ -444,16 +414,13 @@ export const useHistoryData = () => {
             plant_id: ['PlantA', 'PlantB', 'PlantC'][index % 3],
             raw1_frac: 0.65 + Math.random() * 0.1,
             raw2_frac: 0.30 + Math.random() * 0.1,
-            // Recent data has better efficiency
             grinding_efficiency: 88 + Math.random() * 6 - improvementFactor * 8,
             kiln_temp: 1440 + Math.random() * 40,
             fan_speed: 85 + Math.random() * 15,
-            // Recent data uses less energy
             energy_use: 160 + Math.random() * 20 + improvementFactor * 40,
             emissions_CO2: 100 + Math.random() * 15 + improvementFactor * 20,
             emissions_label: Math.floor(Math.random() * 3),
             quality_label: Math.floor(Math.random() * 3),
-            // Recent data has better quality
             product_quality_index: 80 + Math.random() * 10 - improvementFactor * 8,
             hour_of_day: baseTime.getHours(),
             day_of_week: baseTime.getDay(),
@@ -477,13 +444,9 @@ export const useHistoryData = () => {
         // Transform each historical record similar to latest_state
         const transformedHistory = data.map(record => ({
           ...record,
-          // Map emissions_label to estimated emissions value
           emissions: record.emissions_label ? getEmissionsFromLabel(record.emissions_label) : 850,
-          // Map quality_label to estimated quality percentage
           product_quality: record.quality_label ? getQualityFromLabel(record.quality_label) : 95,
-          // Calculate production volume from energy use
           production_volume: record.energy_use ? Math.max(100, 200 - (record.energy_use - 150) * 0.5) : 140,
-          // Add derived fields
           efficiency_score: record.grinding_efficiency || 90,
           quality_grade: record.quality_label >= 2 ? 'A+' : record.quality_label >= 1 ? 'A' : 'B',
           fuel_consumption: record.energy_use ? record.energy_use * 0.3 : 45,
@@ -491,8 +454,6 @@ export const useHistoryData = () => {
         
         return transformedHistory;
       } catch (error) {
-        // Fallback to mock data if API fails (168 records for weekly reports)
-        // Add trend: recent data has better performance
         const mockHistoryData = Array.from({ length: 168 }, (_, index) => {
           const baseTime = new Date(Date.now() - index * 60 * 60 * 1000);
           const improvementFactor = index / 168; // 0 (recent) to 1 (old)
@@ -529,7 +490,6 @@ export const useHistoryData = () => {
   });
 };
 
-// Export helper functions for use in components
 export { getEmissionsFromLabel, getQualityFromLabel };
 
 export default api;

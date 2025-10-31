@@ -7,7 +7,6 @@ export const generatePDFReport = async ({ period, metrics, insights, historyData
   const pageHeight = doc.internal.pageSize.getHeight();
   let yPosition = 20;
 
-  // Helper function to add new page if needed
   const checkPageBreak = (requiredSpace = 20) => {
     if (yPosition + requiredSpace > pageHeight - 20) {
       doc.addPage();
@@ -176,7 +175,6 @@ export const generatePDFReport = async ({ period, metrics, insights, historyData
     yPosition = doc.lastAutoTable.finalY + 15;
   }
 
-  // Footer on last page
   const totalPages = doc.internal.getNumberOfPages();
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);

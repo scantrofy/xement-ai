@@ -6,7 +6,6 @@ const PRVolumeChart = ({ pullRequests, onPRSelect, selectedRepository, selectedA
   const [chartView, setChartView] = useState('daily');
   const [selectedMetric, setSelectedMetric] = useState('volume');
 
-  // Generate mock chart data for the last 30 days
   const generateChartData = () => {
     const data = [];
     const today = new Date();
@@ -68,7 +67,6 @@ const PRVolumeChart = ({ pullRequests, onPRSelect, selectedRepository, selectedA
 
   const handleChartClick = (data) => {
     if (data && data?.activePayload) {
-      // Simulate finding a PR for the clicked date
       const mockPR = pullRequests?.[Math.floor(Math.random() * pullRequests?.length)];
       onPRSelect(mockPR);
     }

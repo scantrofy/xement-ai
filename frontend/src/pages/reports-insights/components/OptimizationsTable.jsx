@@ -11,10 +11,8 @@ const OptimizationsTable = ({ data, totalOptimizations }) => {
     );
   }
 
-  // Generate optimization records based on data analysis
   const optimizations = [];
   
-  // Analyze energy improvements
   data.forEach((item, index) => {
     if (index > 0) {
       const prevItem = data[index - 1];
@@ -32,7 +30,6 @@ const OptimizationsTable = ({ data, totalOptimizations }) => {
         });
       }
 
-      // Check efficiency improvements
       const efficiencyDiff = item.grinding_efficiency - prevItem.grinding_efficiency;
       if (efficiencyDiff > 1.5) {
         optimizations.push({
@@ -46,7 +43,6 @@ const OptimizationsTable = ({ data, totalOptimizations }) => {
         });
       }
 
-      // Check emissions reduction
       const emissionsDiff = prevItem.emissions - item.emissions;
       if (emissionsDiff > 10) {
         optimizations.push({
@@ -62,7 +58,6 @@ const OptimizationsTable = ({ data, totalOptimizations }) => {
     }
   });
 
-  // Limit to most recent optimizations
   const recentOptimizations = optimizations.slice(0, 10);
 
   const getImpactBadge = (impact) => {

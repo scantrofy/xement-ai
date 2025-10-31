@@ -15,19 +15,16 @@ const OverviewDashboard = () => {
   
   const { data: plantData, isLoading, error, isRefetching, refetch } = useLatestState(filters);
 
-  // Check if we're using mock data
   const isUsingMockData = () => {
     const baseURL = import.meta.env?.VITE_API_BASE_URL;
     return !baseURL || baseURL === 'https://YOUR-CLOUDRUN-URL.a.run.app' || baseURL?.includes('localhost');
   };
 
-  // Handle filter changes
   const handleFilterChange = (newFilters) => {
     setFilters(newFilters);
     // The useLatestState hook will automatically refetch with new filters
   };
 
-  // Handle manual refresh
   const handleRefresh = () => {
     refetch();
   };

@@ -12,7 +12,6 @@ const EnergyTrendChart = ({ data, reportPeriod }) => {
     );
   }
 
-  // Prepare chart data
   const chartData = [...data]
     .reverse()
     .map((item, index) => ({
@@ -26,7 +25,6 @@ const EnergyTrendChart = ({ data, reportPeriod }) => {
       emissions: parseFloat(item.emissions) || 0,
     }));
 
-  // Sample data for better visualization (take every nth point for weekly)
   const displayData = reportPeriod === 'weekly' 
     ? chartData.filter((_, index) => index % 4 === 0)
     : chartData;

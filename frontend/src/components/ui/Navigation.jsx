@@ -75,7 +75,7 @@ const Navigation = () => {
   return (
     <>
       {/* Desktop Navigation */}
-      <nav className="hidden md:block bg-surface border-b border-border-medium fixed top-20 left-0 right-0 z-100">
+      <nav className="hidden md:block bg-surface border-b border-border-medium fixed top-20 left-0 right-0 z-10">
         <div className="px-6">
           <div className="flex space-x-0">
             {navigationItems?.map((item) => {

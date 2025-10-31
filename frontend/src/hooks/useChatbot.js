@@ -6,7 +6,6 @@ import { fs_client } from '../config/firestore';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-// Get auth token from localStorage
 const getAuthToken = () => {
   return localStorage.getItem('authToken') || localStorage.getItem('firebaseToken');
 };
@@ -16,8 +15,6 @@ export const useChatHistory = (isAuthenticated) => {
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // For now, return empty messages to avoid Firestore errors
-  // TODO: Set up Firestore collection and security rules before enabling
   useEffect(() => {
     if (!isAuthenticated) {
       setMessages([]);
@@ -25,8 +22,6 @@ export const useChatHistory = (isAuthenticated) => {
       return;
     }
 
-    // Temporarily disabled to avoid Firestore 400 errors
-    // Enable after creating chat_history collection and setting up security rules
     setMessages([]);
     setIsLoading(false);
 
@@ -69,7 +64,6 @@ export const useChatHistory = (isAuthenticated) => {
   return { messages, isLoading };
 };
 
-// Send message mutation
 export const useSendMessage = () => {
   const queryClient = useQueryClient();
 
@@ -137,7 +131,6 @@ export const useSendMessage = () => {
   });
 };
 
-// Mark messages as read
 export const useMarkMessagesAsRead = () => {
   return useMutation({
     mutationFn: async (messageIds) => {
@@ -153,7 +146,6 @@ export const useMarkMessagesAsRead = () => {
   });
 };
 
-// Clear chat history
 export const useClearChatHistory = () => {
   return useMutation({
     mutationFn: async (userId) => {

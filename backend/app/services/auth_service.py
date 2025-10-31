@@ -30,11 +30,9 @@ def signup_user(user_data: UserSignup):
 def login_user(credentials: UserLogin):
     user = get_user_by_email(credentials.email)
     
-    # Debug: Check if user exists
     if not user:
         raise HTTPException(status_code=401, detail=f"User not found: {credentials.email}")
     
-    # Debug: Check password
     password_valid = verify_password(credentials.password, user.get("password", ""))
     if not password_valid:
         raise HTTPException(status_code=401, detail="Invalid password")
@@ -42,7 +40,6 @@ def login_user(credentials: UserLogin):
     if not user.get("is_active", True):
         raise HTTPException(status_code=403, detail="User inactive")
 
-    # Validate that the user's actual role matches the selected role
     user_role = user.get("role")
     if user_role != credentials.role:
         if user_role == "admin":

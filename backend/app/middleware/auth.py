@@ -8,7 +8,6 @@ async def require_auth(request: Request):
         raise HTTPException(status_code=401, detail="Missing auth token")
     token = header.split(" ", 1)[1]
     try:
-        # Verify token using existing firestore_service
         token_data = verify_token(token)
         if not token_data:
             raise HTTPException(status_code=401, detail="Invalid or expired token")
@@ -25,14 +24,12 @@ async def require_admin(request: Request):
         raise HTTPException(status_code=401, detail="Missing auth token")
     token = header.split(" ", 1)[1]
     try:
-        # Verify token
         token_data = verify_token(token)
         if not token_data:
             raise HTTPException(status_code=401, detail="Invalid or expired token")
         
         user_id = token_data.get("user_id")
         
-        # Get user from Firestore to check role
         user_doc = fs_client.collection("users").document(user_id).get()
         if not user_doc.exists:
             raise HTTPException(status_code=403, detail="User not found")

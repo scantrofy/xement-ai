@@ -14,7 +14,6 @@ const ErrorFallback = ({ error, resetError }) => {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="max-w-md w-full text-center">
-        {/* Logo */}
         <div className="flex justify-center mb-8">
           <Logo 
             size="large"
@@ -24,14 +23,12 @@ const ErrorFallback = ({ error, resetError }) => {
           />
         </div>
 
-        {/* Error Icon */}
         <div className="flex justify-center mb-8">
           <div className="w-24 h-24 bg-surface rounded-full flex items-center justify-center">
             <Icon name="AlertCircle" size={48} className="text-error" strokeWidth={1.5} />
           </div>
         </div>
 
-        {/* Error Message */}
         <h1 className="text-2xl font-semibold text-text-primary font-inter mb-4">
           Something went wrong
         </h1>
@@ -39,7 +36,6 @@ const ErrorFallback = ({ error, resetError }) => {
           An unexpected error occurred while loading the dashboard. Please try refreshing the page or return to the overview.
         </p>
 
-        {/* Error Details (Development Mode) */}
         {process.env.NODE_ENV === 'development' && error && (
           <div className="mb-6 p-4 bg-error/10 border border-error/20 rounded-lg text-left">
             <h3 className="text-sm font-medium text-error mb-2">Error Details:</h3>
@@ -49,7 +45,6 @@ const ErrorFallback = ({ error, resetError }) => {
           </div>
         )}
 
-        {/* Action Buttons */}
         <div className="space-y-4">
           <button
             onClick={() => window.location.reload()}
@@ -68,7 +63,6 @@ const ErrorFallback = ({ error, resetError }) => {
           </button>
         </div>
 
-        {/* Additional Info */}
         <div className="mt-8 p-4 bg-surface rounded-lg border border-border-medium">
           <p className="text-sm text-text-secondary font-inter">
             If this problem persists, please contact the system administrator.

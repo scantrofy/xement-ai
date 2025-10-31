@@ -13,16 +13,14 @@ const AlertNotificationManager = () => {
   const [lastAlertId, setLastAlertId] = useState(null);
   const [notificationPermission, setNotificationPermission] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const hasInitialized = useRef(false);
 
-  // Poll for alerts every 10 minutes (matches backend check frequency)
   const { data: alerts = [] } = useRecentAlerts({
     limit: 10,
     refetchInterval: 600000 // 10 minutes (600,000 ms)
   });
 
-  // Request notification permission on mount
   useEffect(() => {
     const checkPermission = async () => {
       const granted = await requestNotificationPermission();
@@ -31,11 +29,9 @@ const AlertNotificationManager = () => {
     checkPermission();
   }, []);
 
-  // Check for new alerts and notify
   useEffect(() => {
     if (!alerts || alerts.length === 0) return;
 
-    // Skip first load to avoid notifying for existing alerts
     if (!hasInitialized.current) {
       hasInitialized.current = true;
       if (alerts.length > 0) {
@@ -44,16 +40,12 @@ const AlertNotificationManager = () => {
       return;
     }
 
-    // Check if there's a new alert
     const latestAlert = alerts[0];
     if (latestAlert && latestAlert.id !== lastAlertId) {
-      // New alert detected!
-      // Play sound if enabled
       if (soundEnabled) {
         playAlertSound(latestAlert.severity);
       }
 
-      // Show browser notification if permission granted
       if (notificationPermission) {
         const anomalyCount = latestAlert.anomalies?.length || 0;
         showBrowserNotification(
@@ -63,18 +55,15 @@ const AlertNotificationManager = () => {
         );
       }
 
-      // Update last alert ID
       setLastAlertId(latestAlert.id);
     }
   }, [alerts, lastAlertId, soundEnabled, notificationPermission]);
 
-  // Toggle sound on/off
   const toggleSound = () => {
     setSoundEnabled(!soundEnabled);
     localStorage.setItem('alertSoundEnabled', (!soundEnabled).toString());
   };
 
-  // Load sound preference from localStorage
   useEffect(() => {
     const savedSoundPreference = localStorage.getItem('alertSoundEnabled');
     if (savedSoundPreference !== null) {
@@ -82,13 +71,12 @@ const AlertNotificationManager = () => {
     }
   }, []);
 
-  // Show monitoring indicator
   return (
     <div className="fixed bottom-4 right-4 z-50 bg-surface border border-border-medium rounded-lg shadow-lg p-3 text-xs max-w-xs">
       <div className="flex items-center justify-between gap-3 mb-2">
         <div className="flex items-center gap-2">
-          <div className={`w-2 h-2 rounded-full ${
-            alerts.length > 0 ? 'bg-green-500' : 'bg-gray-400'
+          <div className={`w-3 h-3 rounded-full ${
+            alerts.length > 0 ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
           }`}></div>
           <span className="text-text-primary font-medium">Alert Monitor</span>
         </div>
@@ -97,7 +85,6 @@ const AlertNotificationManager = () => {
             const newExpandedState = !isExpanded;
             setIsExpanded(newExpandedState);
             
-            // Dispatch custom event for chatbot to listen
             window.dispatchEvent(new CustomEvent('alertMonitorToggle', {
               detail: { isExpanded: newExpandedState }
             }));

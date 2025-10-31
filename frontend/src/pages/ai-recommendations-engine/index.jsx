@@ -9,18 +9,15 @@ const AIRecommendationsEngine = () => {
   const [selectedPriority, setSelectedPriority] = useState('all');
   const [implementationStatus, setImplementationStatus] = useState('all');
   const [recommendations, setRecommendations] = useState(() => {
-    // Initialize from sessionStorage if available
     const saved = sessionStorage.getItem('ai-recommendations');
     return saved ? JSON.parse(saved) : [];
   });
   const [cycleData, setCycleData] = useState(null);
   const [aiResponse, setAiResponse] = useState(() => {
-    // Initialize from sessionStorage if available
     const saved = sessionStorage.getItem('ai-response');
     return saved ? JSON.parse(saved) : null;
   });
 
-  // Handle recommendation status updates
   const handleRecommendationStatusUpdate = (recommendationId, newStatus, additionalData = {}) => {
     const updatedRecommendations = recommendations.map(rec => 
       rec.id === recommendationId 
@@ -34,27 +31,23 @@ const AIRecommendationsEngine = () => {
     
     setRecommendations(updatedRecommendations);
     
-    // Update sessionStorage with new status
     sessionStorage.setItem('ai-recommendations', JSON.stringify(updatedRecommendations));
   };
   
   const runCycleMutation = useRunCycle();
   const recommendationMutation = useRecommendation();
 
-  // Load initial recommendations only if no data exists or data is stale
   useEffect(() => {
     const dataTimestamp = sessionStorage.getItem('ai-data-timestamp');
     const now = Date.now();
     const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
     
-    // Check if data is stale (older than 5 minutes) or doesn't exist
     const isDataStale = !dataTimestamp || (now - parseInt(dataTimestamp)) > fiveMinutes;
     
-    // Only fetch data if we don't have any existing data or data is stale
     if ((!aiResponse && !recommendations.length) || isDataStale) {
       handleRunCycle();
     }
-  }, []); // Keep empty dependency array but add conditional logic
+  }, []);
 
   const filteredRecommendations = recommendations?.filter((rec) => {
     const categoryMatch = selectedCategory === 'all' || rec?.category === selectedCategory;
@@ -67,13 +60,11 @@ const AIRecommendationsEngine = () => {
     try {
       const result = await runCycleMutation?.mutateAsync();
       setCycleData(result);
-      setAiResponse(result); // Store the full AI response
+      setAiResponse(result);
       
-      // Save to sessionStorage for persistence with timestamp
       sessionStorage.setItem('ai-response', JSON.stringify(result));
       sessionStorage.setItem('ai-data-timestamp', Date.now().toString());
       
-      // Transform API recommendations to match UI format
       if (result?.recommendation?.recommendations) {
         const transformedRecommendations = result.recommendation.recommendations.map((rec, index) => ({
           id: `rec-${Date.now()}-${index}`,
@@ -100,7 +91,6 @@ const AIRecommendationsEngine = () => {
         }));
         setRecommendations(transformedRecommendations);
         
-        // Save recommendations to sessionStorage
         sessionStorage.setItem('ai-recommendations', JSON.stringify(transformedRecommendations));
       }
     } catch (error) {
@@ -108,7 +98,6 @@ const AIRecommendationsEngine = () => {
     }
   };
 
-  // Helper functions to transform API data
   const getRecommendationCategory = (parameter) => {
     const categoryMap = {
       kiln_temp: 'energy',
@@ -160,7 +149,6 @@ const AIRecommendationsEngine = () => {
     return stepsMap[parameter] || ['Analyze current state', 'Implement changes', 'Monitor results', 'Optimize performance'];
   };
 
-  // Helper functions for the new table
   const getParameterUnit = (parameter) => {
     const unitMap = {
       kiln_temp: '°C',
@@ -222,10 +210,8 @@ const AIRecommendationsEngine = () => {
         </div>
 
 
-        {/* Loading State - Cycle Running - Show Skeleton Loaders */}
         {runCycleMutation?.isPending && (
           <>
-            {/* Skeleton for Gemini AI Recommendations and Impact Overview */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Skeleton for Gemini AI Table */}
               <div className="bg-surface rounded-lg border border-border-medium p-6">

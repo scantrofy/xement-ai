@@ -90,9 +90,6 @@ def run_cycle(user=Depends(require_auth)):
     4. Verify energy savings
     5. Log results in Firestore
     """
-    # Allow both admin and operator to run cycles
-    # if user.get("role") != "admin":
-    #     raise HTTPException(status_code=403, detail="Only admin users can run this operation")
 
     client = bigquery.Client()
     query = """

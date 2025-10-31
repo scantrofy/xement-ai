@@ -13,7 +13,6 @@ def get_all_users():
         for doc in docs:
             user_data = doc.to_dict()
             user_data["id"] = doc.id
-            # Remove sensitive data
             user_data.pop("password", None)
             users.append(user_data)
         return {"users": users, "total": len(users)}
@@ -28,7 +27,6 @@ def get_user_by_id(user_id: str):
             return None
         user_data = doc.to_dict()
         user_data["id"] = doc.id
-        # Remove sensitive data
         user_data.pop("password", None)
         return user_data
     except Exception as e:
@@ -37,19 +35,15 @@ def get_user_by_id(user_id: str):
 def create_user_by_admin(user_data: UserSignup):
     """Create new user by admin - stores in Firestore with hashed password"""
     try:
-        # Check if email already exists
         existing_user = get_user_by_email(user_data.email)
         if existing_user:
             raise HTTPException(status_code=400, detail="Email already registered")
         
-        # Validate role
         if user_data.role not in ["admin", "operator"]:
             raise HTTPException(status_code=400, detail="Invalid role. Must be 'admin' or 'operator'")
         
-        # Hash password
         hashed_password = hash_password(user_data.password)
         
-        # Create Firestore user document
         user_doc = {
             "email": user_data.email,
             "password": hashed_password,
@@ -60,7 +54,6 @@ def create_user_by_admin(user_data: UserSignup):
             "created_at": datetime.utcnow(),
         }
         
-        # Add to Firestore (auto-generates document ID)
         doc_ref = fs_client.collection("users").add(user_doc)
         user_id = doc_ref[1].id
         
@@ -103,12 +96,9 @@ def update_user(user_id: str, user_data: UserUpdate):
         if user_data.organization is not None:
             update_dict["organization"] = user_data.organization
         
-        # Handle password change if provided
         if user_data.new_password is not None and user_data.new_password.strip():
-            # Validate password length
             if len(user_data.new_password) < 6:
                 raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
-            # Hash the new password
             hashed_password = hash_password(user_data.new_password)
             update_dict["password"] = hashed_password
         
@@ -116,7 +106,6 @@ def update_user(user_id: str, user_data: UserUpdate):
         
         user_ref.update(update_dict)
         
-        # Return updated user
         updated_user = user_ref.get().to_dict()
         updated_user["id"] = user_id
         updated_user.pop("password", None)
@@ -135,7 +124,6 @@ def delete_user(user_id: str):
         if not user_ref.get().exists:
             raise HTTPException(status_code=404, detail="User not found")
         
-        # Delete from Firestore
         user_ref.delete()
         
         return {"message": "User deleted successfully", "user_id": user_id}

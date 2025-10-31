@@ -6,7 +6,6 @@ import Routes from './Routes';
 import AlertNotificationManager from './components/AlertNotificationManager';
 import './styles/tailwind.css';
 
-// Create a client
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

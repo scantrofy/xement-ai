@@ -27,7 +27,6 @@ const Signup = () => {
       ...prev,
       [name]: value
     }));
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -81,18 +80,14 @@ const Signup = () => {
     setIsLoading(true);
     
     try {
-      // Use Firebase authentication
       const { user, token } = await signup(formData.email, formData.password);
       
-      // Store additional user data in localStorage
       localStorage.setItem('userRole', userRole);
       localStorage.setItem('userName', formData.fullName);
       localStorage.setItem('userOrganization', formData.organization);
       
-      // Navigate to dashboard
       navigate('/overview-dashboard');
     } catch (error) {
-      // Handle Firebase auth errors
       let errorMessage = 'Signup failed. Please try again.';
       if (error.code === 'auth/email-already-in-use') {
         errorMessage = 'This email is already registered.';

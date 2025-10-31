@@ -24,7 +24,6 @@ const Login = () => {
       ...prev,
       [name]: value
     }));
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -60,7 +59,6 @@ const Login = () => {
     setIsLoading(true);
     
     try {
-      // First, fetch user data from backend to get role from Firestore
       let userData = null;
       try {
         const response = await axios.post(
@@ -74,15 +72,12 @@ const Login = () => {
         userData = response.data.user;
         const backendToken = response.data.token;
         
-        // Store user data from Firestore in localStorage BEFORE Firebase login
         localStorage.setItem('userRole', userData.role);
         localStorage.setItem('userName', userData.full_name);
         localStorage.setItem('userOrganization', userData.organization);
         localStorage.setItem('userEmail', userData.email);
-        // Store backend token for API calls (this is what the backend expects)
         localStorage.setItem('authToken', backendToken);
       } catch (backendError) {
-        // Handle different types of errors appropriately
         if (backendError.response?.status === 403) {
           setApiError(backendError.response.data.detail || 'Invalid role selection.');
         } else {
@@ -92,20 +87,14 @@ const Login = () => {
         return;
       }
       
-      // Then use Firebase authentication
       try {
         const { user, token: firebaseToken } = await login(formData.email, formData.password);
-        // Don't overwrite authToken - keep the backend token for API calls
-        // localStorage.setItem('authToken', firebaseToken); // REMOVED - we use backend token
         localStorage.setItem('firebaseToken', firebaseToken); // Store separately if needed
         localStorage.setItem('isAuthenticated', 'true');
       } catch (firebaseError) {
-        // If Firebase fails but backend succeeded, we still have a valid session
-        // The authToken from backend is stored in localStorage, so we can proceed
         localStorage.setItem('isAuthenticated', 'true');
       }
       
-      // Navigate to dashboard
       navigate('/overview-dashboard');
     } catch (error) {
       let errorMessage = 'Login failed. Please try again.';

@@ -48,7 +48,6 @@ const EditUserModal = ({ user, onClose, onSubmit }) => {
       newErrors.organization = 'Organization is required';
     }
 
-    // Validate password if changing
     if (changePassword) {
       if (!formData.new_password) {
         newErrors.new_password = 'New password is required';
@@ -172,7 +171,6 @@ const EditUserModal = ({ user, onClose, onSubmit }) => {
                 onChange={(e) => {
                   setChangePassword(e.target.checked);
                   if (!e.target.checked) {
-                    // Clear password fields when unchecked
                     setFormData(prev => ({
                       ...prev,
                       new_password: '',
@@ -195,7 +193,6 @@ const EditUserModal = ({ user, onClose, onSubmit }) => {
             </p>
           </div>
 
-          {/* Password Fields (shown only when changePassword is true) */}
           {changePassword && (
             <>
               {/* New Password */}

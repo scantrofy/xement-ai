@@ -51,7 +51,6 @@ const Button = React.forwardRef(({
 }, ref) => {
     const Comp = asChild ? Slot : "button";
 
-    // Icon size mapping based on button size
     const iconSizeMap = {
         xs: 12,
         sm: 14,
@@ -63,7 +62,6 @@ const Button = React.forwardRef(({
 
     const calculatedIconSize = iconSize || iconSizeMap?.[size] || 16;
 
-    // Loading spinner
     const LoadingSpinner = () => (
         <svg className="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -106,7 +104,6 @@ const Button = React.forwardRef(({
         </button>
     );
 
-    // When asChild is true, merge icons into the child element
     if (asChild) {
         try {
             if (!children || React.Children?.count(children) !== 1) {

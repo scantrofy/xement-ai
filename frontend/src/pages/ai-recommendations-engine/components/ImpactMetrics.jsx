@@ -2,7 +2,6 @@ import React from 'react';
 import Icon from '../../../components/AppIcon';
 
 const ImpactMetrics = ({ recommendations }) => {
-  // Calculate total impact from recommendations
   const totalImpact = recommendations?.reduce(
     (acc, rec) => ({
       cost_savings: acc?.cost_savings + (rec?.impact?.cost_savings || 0),
@@ -12,7 +11,6 @@ const ImpactMetrics = ({ recommendations }) => {
     { cost_savings: 0, quality_improvement: 0, efficiency_gain: 0 }
   );
 
-  // Calculate average complexity
   const avgComplexity = recommendations?.length > 0 
     ? recommendations?.reduce((acc, rec) => {
         const complexityScore = rec?.timeline?.includes('week') 

@@ -11,21 +11,18 @@ const AlertFeed = () => {
     if (plantData) {
       const generatedAlerts = [];
       
-      // Check each KPI against thresholds and generate alerts
       Object.entries(KPI_THRESHOLDS).forEach(([key, thresholds]) => {
         const value = plantData[key];
         if (value !== undefined && value !== null) {
           let alertType = null;
           let severity = null;
           
-          // For emissions, lower is better (inverse logic)
           if (key === 'emissions') {
             if (value > thresholds.warning) {
               alertType = value > (thresholds.warning + 50) ? 'critical' : 'warning';
               severity = value > (thresholds.warning + 50) ? 'high' : 'medium';
             }
           } else {
-            // For other KPIs, higher is better
             if (value < thresholds.warning) {
               alertType = value < (thresholds.warning - 10) ? 'critical' : 'warning';
               severity = value < (thresholds.warning - 10) ? 'high' : 'medium';
@@ -45,7 +42,6 @@ const AlertFeed = () => {
               severity,
             });
             
-            // Store timestamp for this alert type if it's new
             if (!existingTimestamp) {
               setAlertTimestamps(prev => new Map(prev.set(alertKey, getStableTimestamp(alertKey))));
             }
@@ -53,7 +49,6 @@ const AlertFeed = () => {
         }
       });
       
-      // Add some positive alerts for good performance
       if (plantData.product_quality >= 95) {
         const alertKey = 'quality-success-info';
         const existingTimestamp = alertTimestamps.get(alertKey);
@@ -93,7 +88,6 @@ const AlertFeed = () => {
       const finalAlerts = generatedAlerts.slice(0, 5);
       setAlerts(finalAlerts);
       
-      // Clean up timestamps for alerts that are no longer active
       cleanupTimestamps(finalAlerts);
     }
   }, [plantData]);
@@ -124,8 +118,6 @@ const AlertFeed = () => {
 
 
   const getStableTimestamp = (alertKey) => {
-    // Generate a stable timestamp based on the alert key
-    // This ensures the same alert type always gets the same relative timestamp
     const hash = alertKey.split('').reduce((a, b) => {
       a = ((a << 5) - a) + b.charCodeAt(0);
       return a & a;
@@ -135,13 +127,11 @@ const AlertFeed = () => {
     return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
   };
 
-  // Clean up timestamps for alerts that are no longer active
   const cleanupTimestamps = (currentAlerts) => {
     const activeAlertKeys = new Set(currentAlerts.map(alert => {
       if (alert.type === 'success') {
         return alert.id.includes('quality') ? 'quality-success-info' : 'efficiency-success-info';
       }
-      // Use alert ID to determine the key since we removed location
       const kpiName = alert.id.replace('alert-', '').replace('-warning', '').replace('-critical', '');
       return `${kpiName}-${alert.type}-${alert.severity}`;
     }));

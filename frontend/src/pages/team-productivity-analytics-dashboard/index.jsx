@@ -19,7 +19,6 @@ const TeamProductivityAnalyticsDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(new Date());
 
-  // Mock data for team productivity analytics
   const velocityMetrics = {
     commitsPerDeveloper: { value: 24.5, change: 12.3, trend: 'up' },
     prThroughput: { value: 18.2, change: -5.7, trend: 'down' },

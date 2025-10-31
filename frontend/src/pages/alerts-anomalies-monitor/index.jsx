@@ -9,7 +9,6 @@ const AlertsAnomaliesMonitor = () => {
   const [selectedAlert, setSelectedAlert] = useState(null);
   const [lastChecked, setLastChecked] = useState(null);
   
-  // Fetch alerts from Firestore (polls every 10 minutes)
   const { data: firestoreAlerts = [], isLoading, refetch: refetchAlerts } = useRecentAlerts({
     limit: 100,
     refetchInterval: 600000 // 10 minutes (600,000 ms)
@@ -18,7 +17,6 @@ const AlertsAnomaliesMonitor = () => {
   const checkAnomaliesMutation = useCheckAnomalies();
   const acknowledgeAlertMutation = useAcknowledgeAlert();
 
-  // Load last checked timestamp and run check on mount
   useEffect(() => {
     const lastCheckTime = localStorage.getItem('lastAnomalyCheckTime');
     const now = Date.now();
@@ -28,20 +26,16 @@ const AlertsAnomaliesMonitor = () => {
       const timestamp = new Date(parseInt(lastCheckTime));
       const timeSinceLastCheck = now - timestamp.getTime();
       
-      // If last check was within 5 minutes, just load the timestamp
       if (timeSinceLastCheck < fiveMinutes) {
         setLastChecked(timestamp);
       } else {
-        // Last check was > 5 minutes ago, run a new check
         loadAlertsFromCycle();
       }
     } else {
-      // No previous check, run initial check
       loadAlertsFromCycle();
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Update last checked when new alerts arrive
   useEffect(() => {
     if (firestoreAlerts.length > 0) {
       const lastCheckTime = localStorage.getItem('lastAnomalyCheckTime');
@@ -58,7 +52,6 @@ const AlertsAnomaliesMonitor = () => {
       setLastChecked(timestamp);
       localStorage.setItem('lastAnomalyCheckTime', timestamp.getTime().toString());
       
-      // Wait a moment for Firestore to update, then manually refetch
       setTimeout(async () => {
         await refetchAlerts();
       }, 2000);
@@ -67,7 +60,6 @@ const AlertsAnomaliesMonitor = () => {
     }
   };
 
-  // Helper functions to transform anomaly data
   const formatAnomalyName = (anomaly) => {
     return anomaly
       .replace(/_/g, ' ')
@@ -95,21 +87,18 @@ const AlertsAnomaliesMonitor = () => {
   const getSeverityFromAnomaly = (anomaly) => {
     const anomalyLower = anomaly.toLowerCase();
     
-    // Critical anomalies
     if (anomalyLower.includes('critical') || 
         anomalyLower.includes('high_kiln_temp') ||
         anomalyLower.includes('emergency')) {
       return 'critical';
     }
     
-    // High severity anomalies
     if (anomalyLower.includes('high') || 
         anomalyLower.includes('emission') ||
         anomalyLower.includes('temperature') && anomalyLower.includes('high')) {
       return 'high';
     }
     
-    // Warning level anomalies
     if (anomalyLower.includes('low') || 
         anomalyLower.includes('efficiency') ||
         anomalyLower.includes('warning')) {
@@ -173,14 +162,12 @@ const AlertsAnomaliesMonitor = () => {
     return ['Investigate anomaly source', 'Monitor system parameters closely', 'Contact maintenance team if needed'];
   };
 
-  // Transform Firestore alerts to display format using useMemo
   const filteredAlerts = useMemo(() => {
     const transformedAlerts = firestoreAlerts.map((alert) => {
-      // Transform anomalies array into display alerts
       const anomalies = alert.anomalies || [];
       return anomalies.map((anomaly, index) => ({
         id: `${alert.id}-${index}`,
-        firestoreDocId: alert.id, // Store the actual Firestore document ID
+        firestoreDocId: alert.id,
         type: formatAnomalyName(anomaly),
         equipment: getEquipmentFromAnomaly(anomaly),
         severity: alert.severity || getSeverityFromAnomaly(anomaly),
@@ -269,10 +256,8 @@ const AlertsAnomaliesMonitor = () => {
 
   const acknowledgeAlert = async (alert) => {
     try {
-      // Get user email from localStorage (or use a default)
       const userEmail = localStorage.getItem('userEmail') || 'user@example.com';
       
-      // Use the Firestore document ID, not the composite display ID
       const firestoreDocId = alert.firestoreDocId || alert.id;
       
       await acknowledgeAlertMutation.mutateAsync({
@@ -280,10 +265,8 @@ const AlertsAnomaliesMonitor = () => {
         acknowledged_by: userEmail
       });
       
-      // Close the modal after acknowledging
       setSelectedAlert(null);
       
-      // Refetch alerts to update the UI
       await refetchAlerts();
     } catch (error) {
       alert('Failed to acknowledge alert. Please try again.');
@@ -293,7 +276,6 @@ const AlertsAnomaliesMonitor = () => {
   const criticalAlerts = filteredAlerts?.filter(alert => alert?.severity === 'critical' && alert?.status === 'active');
   const activeAlerts = filteredAlerts?.filter(alert => alert?.status === 'active');
   const hasAnomalies = filteredAlerts?.length > 0;
-  // Only consider it "checked" if we have a recent check (within last 15 minutes) or if we have alerts
   const hasChecked = lastChecked !== null && (
     hasAnomalies || 
     (Date.now() - lastChecked.getTime()) < 15 * 60 * 1000

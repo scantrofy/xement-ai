@@ -2,7 +2,6 @@ from google.cloud import firestore
 from datetime import datetime, timedelta, timezone
 import secrets
 
-# Use the xement-ai-firestore database instead of default
 fs_client = firestore.Client(database="xement-ai-firestore")
 USERS_COLLECTION = "users"
 TOKENS_COLLECTION = "auth_tokens"

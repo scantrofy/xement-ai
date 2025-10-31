@@ -6,7 +6,6 @@ import logging
 
 logger = logging.getLogger("xement-ai")
 
-# Configure Gemini AI
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
@@ -102,7 +101,6 @@ async def get_recent_anomalies():
     try:
         from app.services.firestore_service import fs_client
         
-        # Get unacknowledged alerts (simplified query to avoid index requirement)
         alerts_ref = fs_client.collection("alerts")
         query = alerts_ref.where("acknowledged", "==", False).limit(10)
         docs = query.stream()
@@ -116,7 +114,6 @@ async def get_recent_anomalies():
                 "timestamp": data.get("timestamp")
             })
         
-        # Sort by timestamp in memory (most recent first)
         anomalies.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
         return anomalies[:5]  # Return top 5
     except Exception as e:
@@ -248,18 +245,15 @@ You can also navigate to specific pages in the dashboard for detailed analysis."
 async def process_chat_message(message: str, user_id: str, user_name: str, context: dict = None):
     """Process chat message with Gemini AI"""
     try:
-        # Fetch plant context
         logger.info(f"Processing chat message: {message}")
-        plant_data = get_plant_context()  # Synchronous call
+        plant_data = get_plant_context() 
         logger.info(f"Plant data fetched: {plant_data is not None}")
         
         anomalies = await get_recent_anomalies()
         logger.info(f"Anomalies fetched: {len(anomalies) if anomalies else 0}")
         
-        # Build context string
         context_string = build_context_string(plant_data, anomalies)
         
-        # Build full prompt with detailed instructions
         full_prompt = f"""{SYSTEM_PROMPT}
 
 {context_string}
@@ -286,10 +280,8 @@ Examples of good responses:
 Respond now:
 """
         
-        # Call Gemini API
         logger.info(f"GEMINI_API_KEY configured: {bool(GEMINI_API_KEY)}")
         if not GEMINI_API_KEY:
-            # Fallback response with actual data if Gemini is not configured
             logger.warning("GEMINI_API_KEY not configured - using fallback")
             fallback_response = generate_fallback_response(message, plant_data, anomalies)
             return {
@@ -314,7 +306,6 @@ Respond now:
             }
         except Exception as gemini_error:
             logger.error(f"Gemini API error: {str(gemini_error)}", exc_info=True)
-            # Fall back to simple response if Gemini fails
             fallback_response = generate_fallback_response(message, plant_data, anomalies)
             return {
                 "response": fallback_response,
@@ -327,7 +318,6 @@ Respond now:
     except Exception as e:
         logger.error(f"Error in chatbot service: {str(e)}")
         
-        # Fallback response
         return {
             "response": f"I encountered an error processing your request. Please try rephrasing your question or contact support if the issue persists.",
             "model": "error-fallback",

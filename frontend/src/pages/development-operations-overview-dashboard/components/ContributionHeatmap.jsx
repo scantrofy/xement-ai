@@ -5,7 +5,6 @@ const ContributionHeatmap = ({ onDateClick }) => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [hoveredDate, setHoveredDate] = useState(null);
 
-  // Generate mock data for the last 365 days
   const generateHeatmapData = () => {
     const data = [];
     const today = new Date();
@@ -14,7 +13,6 @@ const ContributionHeatmap = ({ onDateClick }) => {
       const date = new Date(today);
       date?.setDate(date?.getDate() - i);
       
-      // Generate realistic commit patterns (lower on weekends, higher mid-week)
       const dayOfWeek = date?.getDay();
       const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
       const baseIntensity = isWeekend ? 0.2 : 0.8;
@@ -34,7 +32,6 @@ const ContributionHeatmap = ({ onDateClick }) => {
 
   const heatmapData = generateHeatmapData();
   
-  // Group data by weeks
   const groupByWeeks = (data) => {
     const weeks = [];
     let currentWeek = [];
@@ -44,7 +41,6 @@ const ContributionHeatmap = ({ onDateClick }) => {
       const dayOfWeek = date?.getDay();
       
       if (index === 0) {
-        // Fill empty days at the beginning of first week
         for (let i = 0; i < dayOfWeek; i++) {
           currentWeek?.push(null);
         }
@@ -53,7 +49,6 @@ const ContributionHeatmap = ({ onDateClick }) => {
       currentWeek?.push(day);
       
       if (dayOfWeek === 6 || index === data?.length - 1) {
-        // End of week or last day
         while (currentWeek?.length < 7) {
           currentWeek?.push(null);
         }
@@ -110,7 +105,6 @@ const ContributionHeatmap = ({ onDateClick }) => {
     };
   };
 
-  // Get month headers
   const getMonthHeaders = () => {
     const headers = [];
     let currentMonth = -1;

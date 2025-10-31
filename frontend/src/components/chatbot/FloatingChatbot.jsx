@@ -10,7 +10,9 @@ const FloatingChatbot = () => {
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [alertMonitorExpanded, setAlertMonitorExpanded] = useState(false);
-  const [localMessages, setLocalMessages] = useState([]); // Temporary local state for messages
+  
+  const chatButtonBottom = alertMonitorExpanded ? '220px' : '80px';
+  const [localMessages, setLocalMessages] = useState([]);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   
@@ -18,10 +20,8 @@ const FloatingChatbot = () => {
   const { messages: firestoreMessages, isLoading: loadingHistory } = useChatHistory(isAuthenticated);
   const sendMessageMutation = useSendMessage();
   
-  // Use local messages for now (Firestore disabled temporarily)
   const messages = localMessages;
 
-  // Listen for alert monitor expand/collapse events
   useEffect(() => {
     const handleAlertMonitorToggle = (event) => {
       setAlertMonitorExpanded(event.detail.isExpanded);
@@ -34,32 +34,26 @@ const FloatingChatbot = () => {
     };
   }, []);
 
-  // Quick action prompts
   const quickPrompts = [
     "Show latest KPIs",
     "Explain last anomaly",
     "Simulate 30% alt fuel"
   ];
 
-  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
 
-  // Focus input when chat opens
   useEffect(() => {
     if (isOpen && inputRef.current) {
       inputRef.current.focus();
     }
   }, [isOpen]);
 
-  // Play beep on critical alerts (simulated - integrate with your alert system)
   useEffect(() => {
     const checkForCriticalAlerts = () => {
-      // TODO: Integrate with your alert system
-      // For now, this is a placeholder
       const hasCriticalAlert = false;
       if (hasCriticalAlert && isSoundEnabled) {
         playBeep('critical');
@@ -90,7 +84,6 @@ const FloatingChatbot = () => {
     const userMessage = text.trim();
     setMessage('');
 
-    // Add user message to local state
     const userMsg = {
       id: Date.now().toString(),
       role: 'user',
@@ -107,7 +100,6 @@ const FloatingChatbot = () => {
         userName: user?.name || user?.email
       });
       
-      // Add assistant response to local state
       const assistantMsg = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
@@ -117,7 +109,6 @@ const FloatingChatbot = () => {
       };
       setLocalMessages(prev => [...prev, assistantMsg]);
     } catch (error) {
-      // Error handled by mutation
     }
   };
 
@@ -135,8 +126,10 @@ const FloatingChatbot = () => {
 
   return (
     <>
-      {/* Floating Speed Dial Button - Position adjusts based on alert monitor state */}
-      <div className={`fixed ${alertMonitorExpanded ? 'bottom-44' : 'bottom-24'} bottom-44 right-6 z-[9999] transition-all duration-300`}>
+      <div 
+        className="fixed right-6 z-[9999] transition-all duration-300"
+        style={{ bottom: chatButtonBottom }}
+      >
         {!isOpen && (
           <button
             onClick={handleToggleChat}
@@ -145,25 +138,21 @@ const FloatingChatbot = () => {
           >
             <MessageCircle size={28} className="animate-pulse" />
             
-            {/* Notification Badge (if unread messages) */}
             {messages.some(m => !m.read && m.role === 'assistant') && (
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-bounce">
                 !
               </span>
             )}
 
-            {/* Tooltip */}
             <span className="absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-gray-900 text-white text-sm px-3 py-2 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
               Ask XementAI Assistant
             </span>
           </button>
         )}
 
-        {/* Chat Panel */}
         {isOpen && (
           <div className="bg-surface border-2 border-border-light rounded-2xl shadow-2xl w-[360px] h-[500px] flex flex-col overflow-hidden animate-scale-in">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-primary to-primary-dark text-white p-4 flex items-center justify-between">
+            <div className="bg-primary text-white p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="bg-white/20 rounded-full p-2">
                   <MessageCircle size={20} />
@@ -174,19 +163,17 @@ const FloatingChatbot = () => {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                {/* Sound Toggle */}
                 <button
                   onClick={() => setIsSoundEnabled(!isSoundEnabled)}
-                  className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                  className="p-2 hover:bg-white/20 rounded-lg transition-colors text-white"
                   aria-label={isSoundEnabled ? 'Mute alerts' : 'Unmute alerts'}
                 >
                   {isSoundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
                 </button>
                 
-                {/* Close Button */}
                 <button
                   onClick={handleToggleChat}
-                  className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                  className="p-2 hover:bg-white/20 rounded-lg transition-colors text-white"
                   aria-label="Close chat"
                 >
                   <X size={20} />
@@ -194,7 +181,6 @@ const FloatingChatbot = () => {
               </div>
             </div>
 
-            {/* Login Prompt */}
             {showLoginPrompt && !isAuthenticated && (
               <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border-b border-yellow-200 dark:border-yellow-800">
                 <p className="text-sm text-yellow-800 dark:text-yellow-200 mb-2">
@@ -209,7 +195,6 @@ const FloatingChatbot = () => {
               </div>
             )}
 
-            {/* Messages Area */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-background">
               {loadingHistory ? (
                 <div className="flex items-center justify-center h-full">
@@ -225,7 +210,6 @@ const FloatingChatbot = () => {
                     Ask me about KPIs, anomalies, simulations, or recommendations.
                   </p>
                   
-                  {/* Quick Prompts */}
                   <div className="space-y-2 w-full">
                     <p className="text-xs text-text-secondary font-medium mb-2">Try these:</p>
                     {quickPrompts.map((prompt, idx) => (
@@ -266,7 +250,6 @@ const FloatingChatbot = () => {
                     </div>
                   ))}
                   
-                  {/* Thinking Indicator */}
                   {sendMessageMutation.isPending && (
                     <div className="flex justify-start">
                       <div className="bg-surface border border-border-light rounded-2xl px-4 py-3 flex items-center gap-2">
@@ -281,9 +264,7 @@ const FloatingChatbot = () => {
               )}
             </div>
 
-            {/* Input Area */}
             <div className="p-4 border-t border-border-light bg-surface">
-              {/* Quick Prompts (shown when no messages) */}
               {messages.length > 0 && !sendMessageMutation.isPending && (
                 <div className="flex gap-2 mb-3 overflow-x-auto pb-2 scrollbar-hide">
                   {quickPrompts.map((prompt, idx) => (
@@ -323,7 +304,6 @@ const FloatingChatbot = () => {
                 </button>
               </div>
               
-              {/* Error Message */}
               {sendMessageMutation.isError && (
                 <p className="text-xs text-red-500 mt-2">
                   Failed to send message. Please try again.
@@ -334,7 +314,6 @@ const FloatingChatbot = () => {
         )}
       </div>
 
-      {/* Custom Animation Styles */}
       <style>{`
         @keyframes scale-in {
           from {

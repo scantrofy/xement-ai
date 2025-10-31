@@ -4,7 +4,6 @@ import vertexai
 from vertexai.generative_models import GenerativeModel
 
 def get_recommendation(state_dict: dict) -> dict:
-    # Initialize Vertex AI with project and location
     project_id = os.getenv("GOOGLE_CLOUD_PROJECT", "xement-ai")
     location = "us-central1"
     

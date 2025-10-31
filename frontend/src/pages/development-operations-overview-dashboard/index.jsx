@@ -15,11 +15,9 @@ const DevelopmentOperationsOverviewDashboard = () => {
   const [connectionStatus, setConnectionStatus] = useState('connected');
   const [lastUpdate, setLastUpdate] = useState(new Date());
 
-  // Simulate WebSocket connection status
   useEffect(() => {
     const interval = setInterval(() => {
       setLastUpdate(new Date());
-      // Simulate occasional connection issues
       if (Math.random() < 0.05) {
         setConnectionStatus('reconnecting');
         setTimeout(() => setConnectionStatus('connected'), 2000);

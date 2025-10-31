@@ -17,14 +17,12 @@ const AdminUsers = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
 
-  // Check if user is admin
   useEffect(() => {
     if (user && user.role !== 'admin') {
       navigate('/');
     }
   }, [user, navigate]);
 
-  // Fetch users
   useEffect(() => {
     fetchUsers();
   }, [authToken]);

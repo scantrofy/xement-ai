@@ -9,7 +9,6 @@ const ProductionSummary = ({ data }) => {
   const [sortDirection, setSortDirection] = useState('desc');
   const { data: historyData, isLoading, error } = useHistoryData();
 
-  // Transform history data for table display
   const transformedData = historyData ? historyData.map((record, index) => {
     const timestamp = new Date(record.timestamp);
     return {

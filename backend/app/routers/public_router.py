@@ -9,14 +9,12 @@ def build_aggregated_query(period: str, plant: str = "all") -> str:
     """
     base_table = "`xement-ai.xement_ai_dataset.xement_ai_refinement_data`"
 
-    # Common filters
     where = ["timestamp <= CURRENT_TIMESTAMP()"]
     if plant != "all":
         where.append(f"plant_id = '{plant}'")
 
     where_clause = " AND ".join(where)
 
-    # Default: last hour (latest snapshot)
     if period == "lastHour":
         return f"""
             SELECT *
@@ -91,7 +89,6 @@ def get_latest_state(plant: str = "all", period: str = "lastHour"):
     try:
         client = bigquery.Client()
         
-        # Build and execute the appropriate query
         query = build_aggregated_query(period, plant)
         rows = list(client.query(query))
         
@@ -114,15 +111,12 @@ def get_latest_state(plant: str = "all", period: str = "lastHour"):
             if not rows:
                 raise HTTPException(status_code=404, detail="No plant state data available")
         
-        # Convert row to dict and add metadata
         state_data = dict(rows[0])
         
-        # Add period metadata
         state_data["period"] = period
         state_data["source_table"] = "xement_ai_refinement_data"
-        state_data["is_fallback"] = len(rows) == 1  # Indicates if this is a fallback result
+        state_data["is_fallback"] = len(rows) == 1 
         
-        # Ensure timestamps are properly formatted
         current_time = datetime.datetime.now(datetime.timezone.utc)
         
         if 'timestamp' in state_data and state_data['timestamp'] > current_time:

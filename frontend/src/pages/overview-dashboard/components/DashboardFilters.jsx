@@ -5,7 +5,6 @@ const DashboardFilters = ({ filters, onFilterChange, onRefresh, isRefreshing }) 
   const [selectedPlant, setSelectedPlant] = useState(filters?.plant || 'all');
   const [selectedPeriod, setSelectedPeriod] = useState(filters?.period || 'lastHour');
 
-  // Sync with parent filters
   useEffect(() => {
     if (filters) {
       setSelectedPlant(filters.plant);

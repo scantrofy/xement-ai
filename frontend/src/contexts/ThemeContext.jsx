@@ -14,7 +14,6 @@ export const ThemeProvider = ({ children }) => {
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
-    // Check for saved theme preference or default to light mode
     const savedTheme = localStorage.getItem('theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)')?.matches;
     
@@ -22,13 +21,11 @@ export const ThemeProvider = ({ children }) => {
       const isDark = savedTheme === 'dark';
       setIsDarkMode(isDark);
     } else {
-      // Default to light mode unless user prefers dark
       setIsDarkMode(prefersDark);
     }
   }, []);
 
   useEffect(() => {
-    // Apply theme to document root and save preference
     const root = document.documentElement;
     
     if (isDarkMode) {
@@ -41,7 +38,6 @@ export const ThemeProvider = ({ children }) => {
       localStorage.setItem('theme', 'light');
     }
     
-    // Force a reflow to ensure styles are applied
     root.offsetHeight;
   }, [isDarkMode]);
 

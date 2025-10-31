@@ -8,14 +8,12 @@ from google.cloud import firestore
 
 logger = logging.getLogger(__name__)
 
-# Initialize Firestore client
 fs_client = firestore.Client()
 
-# Email configuration from environment variables
 SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
-SMTP_USERNAME = os.getenv("SMTP_USERNAME")  # Gmail address
-SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")  # App password
+SMTP_USERNAME = os.getenv("SMTP_USERNAME")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
 FROM_EMAIL = os.getenv("FROM_EMAIL", SMTP_USERNAME)
 
 
@@ -45,7 +43,6 @@ def get_users_by_role(role: str) -> List[str]:
         return emails
     except Exception as e:
         logger.error(f"Error fetching {role} emails from Firestore: {str(e)}")
-        # Fallback to environment variables if Firestore query fails
         env_emails = os.getenv(f"{role.upper()}_EMAILS", "").split(",")
         return [email.strip() for email in env_emails if email.strip()]
 
@@ -65,20 +62,16 @@ def send_anomaly_alert_email(
         recipients: List of email addresses (defaults to admins/operators based on severity)
     """
     
-    # Skip if email not configured
     if not SMTP_USERNAME or not SMTP_PASSWORD:
         logger.warning(f"Email service not configured. SMTP_USERNAME: {'SET' if SMTP_USERNAME else 'NOT SET'}, SMTP_PASSWORD: {'SET' if SMTP_PASSWORD else 'NOT SET'}. Skipping email notification.")
         return
     
-    # Determine recipients based on severity - fetch from Firestore
     if recipients is None:
         if severity == "critical":
-            # Critical alerts go to both admins and operators
             admin_emails = get_users_by_role("admin")
             operator_emails = get_users_by_role("operator")
             recipients = admin_emails + operator_emails
-        else:  # warning
-            # Warning alerts go to operators only
+        else: 
             recipients = get_users_by_role("operator")
     
     if not recipients:
@@ -92,10 +85,8 @@ def send_anomaly_alert_email(
         msg["From"] = FROM_EMAIL
         msg["To"] = ", ".join(recipients)
         
-        # Format anomaly list
         anomaly_list = "\n".join([f"  • {format_anomaly_name(a)}" for a in anomalies])
         
-        # Create plain text version
         text_content = f"""
 CEMENT PLANT ANOMALY ALERT
 {'=' * 50}
@@ -121,7 +112,6 @@ This is an automated alert from XementAI Monitoring System.
 Login to the dashboard for detailed analysis and recommendations.
 """
         
-        # Create HTML version
         html_content = f"""
 <html>
   <head>
@@ -180,13 +170,11 @@ Login to the dashboard for detailed analysis and recommendations.
 </html>
 """
         
-        # Attach both versions
         part1 = MIMEText(text_content, "plain")
         part2 = MIMEText(html_content, "html")
         msg.attach(part1)
         msg.attach(part2)
         
-        # Send email
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
             server.starttls()
             server.login(SMTP_USERNAME, SMTP_PASSWORD)

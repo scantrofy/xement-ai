@@ -4,7 +4,6 @@ import Icon from '../../../components/AppIcon';
 const WorkflowFunnel = ({ pullRequests, onPRSelect }) => {
   const [selectedStage, setSelectedStage] = useState(null);
 
-  // Calculate workflow stages
   const calculateWorkflowStages = () => {
     const stages = [
       {
@@ -78,7 +77,6 @@ const WorkflowFunnel = ({ pullRequests, onPRSelect }) => {
   const handleStageClick = (stage) => {
     setSelectedStage(selectedStage?.id === stage?.id ? null : stage);
     
-    // Simulate finding PRs in this stage
     if (pullRequests?.length > 0) {
       const mockPR = pullRequests?.[Math.floor(Math.random() * pullRequests?.length)];
       onPRSelect(mockPR);

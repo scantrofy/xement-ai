@@ -8,20 +8,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import google.cloud.logging
 
-# ===== Environment Setup =====
-# Load environment variables before importing app modules
 root_dir = Path(__file__).parent.parent.parent
 load_dotenv(dotenv_path=root_dir / '.env')
 
-# Configure Google Cloud credentials
 credentials_path = root_dir / 'xement_iam.json'
 existing_creds = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
 
 if existing_creds and not os.path.isabs(existing_creds):
-    # Convert relative path to absolute
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = str(root_dir / existing_creds)
 elif not existing_creds and credentials_path.exists():
-    # Set default credentials path
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = str(credentials_path)
 
 from app.routers import (
@@ -32,7 +27,6 @@ from app.routers import (
 app = FastAPI(title="XementAI Backend")
 
 # ----- Logging Setup -----
-# Configure console logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -40,7 +34,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger("xement-ai")
 
-# Also setup Google Cloud Logging (optional)
 try:
     client = google.cloud.logging.Client()
     client.setup_logging()

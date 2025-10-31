@@ -56,10 +56,8 @@ def simulate_fuel_mix(base_row, alt_values=list(range(0, 61, 10))):
         base_energy = base_row.get("energy_use", 220.0)
         pred_energies = [heuristic_energy_adjustment(base_energy, pct) for pct in alt_values]
 
-    # Compute emissions
     emissions_kg = [compute_emissions_kgh(e, pct) for e, pct in zip(pred_energies, alt_values)]
 
-    # Return structured JSON
     df = pd.DataFrame({
         "alt_fuel_pct": alt_values,
         "pred_energy_kwh_per_ton": pred_energies,

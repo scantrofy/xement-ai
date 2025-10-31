@@ -18,7 +18,6 @@ const ReportsInsights = () => {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [insights, setInsights] = useState(null);
 
-  // Calculate report metrics from historical data
   const calculateMetrics = () => {
     if (!historyData || historyData.length === 0) {
       return {
@@ -37,33 +36,27 @@ const ReportsInsights = () => {
 
     const avgEnergyUse = periodData.reduce((sum, d) => sum + (d.energy_use || 0), 0) / periodData.length;
     
-    // Calculate energy savings by comparing current period to baseline (from API or default)
     const baselineEnergy = baselines?.baseline_energy || 175; // Baseline energy consumption (kWh/ton)
     const energySavings = avgEnergyUse > 0 && baselineEnergy > 0
       ? ((baselineEnergy - avgEnergyUse) / baselineEnergy) * 100
       : 0;
     
-    // Calculate CO2 reduction
     const avgEmissions = periodData.reduce((sum, d) => sum + (d.emissions_CO2 || d.emissions || 0), 0) / periodData.length;
     const baselineEmissions = baselines?.baseline_emissions || 130; // Baseline emissions (kg CO2/ton)
     const co2Reduction = avgEmissions > 0 && baselineEmissions > 0
       ? ((baselineEmissions - avgEmissions) / baselineEmissions) * 100
       : 0;
 
-    // Calculate efficiency improvement
     const avgEfficiency = periodData.reduce((sum, d) => sum + (d.grinding_efficiency || 0), 0) / periodData.length;
     const baselineEfficiency = baselines?.baseline_efficiency || 85; // Baseline grinding efficiency (%)
     const efficiencyImprovement = avgEfficiency > 0 && baselineEfficiency > 0
       ? ((avgEfficiency - baselineEfficiency) / baselineEfficiency) * 100
       : 0;
 
-    // Calculate quality score
     const avgQuality = periodData.reduce((sum, d) => sum + (d.product_quality_index || d.product_quality || 0), 0) / periodData.length;
 
-    // Estimate optimizations applied (based on energy improvements)
     const totalOptimizations = Math.max(0, Math.floor(Math.abs(energySavings) * 2.5));
 
-    // Helper function to ensure valid number output
     const safeNumber = (value, decimals = 2) => {
       if (!isFinite(value) || isNaN(value)) return '0';
       return value.toFixed(decimals);
@@ -81,10 +74,8 @@ const ReportsInsights = () => {
     return result;
   };
 
-  // Memoize metrics calculation to recalculate when reportPeriod, historyData, or baselines change
   const metrics = useMemo(() => calculateMetrics(), [historyData, reportPeriod, baselines]);
 
-  // Generate AI insights based on data
   useEffect(() => {
     if (historyData && historyData.length > 0) {
       generateAIInsights();
@@ -96,7 +87,6 @@ const ReportsInsights = () => {
       ? historyData.slice(0, 24)
       : historyData.slice(0, 168);
 
-    // Analyze trends
     const energyTrend = analyzeEnergyTrend(periodData);
     const peakHours = identifyPeakHours(periodData);
     const recommendations = generateRecommendations(periodData, metrics);
