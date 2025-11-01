@@ -1,23 +1,23 @@
 steps:
   # Build Docker image
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/$GCP_PROJECT_ID/cement-backend:$COMMIT_SHA', './backend']
+    args: ['build', '-t', 'gcr.io/$GCP_PROJECT_ID/xement-ai-backend:$COMMIT_SHA', './backend']
 
   # Step 2: Push image to GCR
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$GCP_PROJECT_ID/cement-backend:$COMMIT_SHA']
+    args: ['push', 'gcr.io/$GCP_PROJECT_ID/xement-ai-backend:$COMMIT_SHA']
 
   # Step 3: Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
       [
-        'run', 'deploy', 'cement-backend',
-        '--image', 'gcr.io/$GCP_PROJECT_ID/cement-backend:$COMMIT_SHA',
+        'run', 'deploy', 'xement-ai-backend',
+        '--image', 'gcr.io/$GCP_PROJECT_ID/xement-ai-backend:$COMMIT_SHA',
         '--region', 'us-central1',
         '--platform', 'managed',
         '--allow-unauthenticated'
       ]
 
 images:
-  - 'gcr.io/$GCP_PROJECT_ID/cement-backend:$COMMIT_SHA'
+  - 'gcr.io/$GCP_PROJECT_ID/xement-ai-backend:$COMMIT_SHA'

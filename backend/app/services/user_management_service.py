@@ -76,9 +76,17 @@ def update_user(user_id: str, user_data: UserUpdate):
     """Update user information"""
     try:
         user_ref = fs_client.collection("users").document(user_id)
+        user_doc = user_ref.get()
         
-        if not user_ref.get().exists:
+        if not user_doc.exists:
             raise HTTPException(status_code=404, detail="User not found")
+        
+        existing_user_data = user_doc.to_dict()
+        if existing_user_data.get("email") == "admin@example.com":
+            raise HTTPException(
+                status_code=403, 
+                detail="Cannot edit the primary admin account (admin@example.com)"
+            )
         
         update_dict = {}
         
@@ -120,9 +128,17 @@ def delete_user(user_id: str):
     """Delete user from Firestore"""
     try:
         user_ref = fs_client.collection("users").document(user_id)
+        user_doc = user_ref.get()
         
-        if not user_ref.get().exists:
+        if not user_doc.exists:
             raise HTTPException(status_code=404, detail="User not found")
+        
+        user_data = user_doc.to_dict()
+        if user_data.get("email") == "admin@example.com":
+            raise HTTPException(
+                status_code=403, 
+                detail="Cannot delete the primary admin account (admin@example.com)"
+            )
         
         user_ref.delete()
         

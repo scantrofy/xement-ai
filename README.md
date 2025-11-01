@@ -130,6 +130,31 @@ This platform consists of three main components:
    # Backend Environment Variables
    GEMINI_API_KEY=your-gemini-api-key
    GOOGLE_APPLICATION_CREDENTIALS=iam.json
+   GCP_PROJECT_ID="your-gcp-project-id"
+   BQ_DATASET="your-bigquery-dataset"
+   BQ_DATASET_LOCATION="your-bigquery-dataset-location"
+   BQ_TABLE="your-bigquery-table"
+   NUM_ROW="your-bigquery-row-count"
+   PLANTS="your-plants"
+   SIMULATE_FREQ_MINUTES="your-simulate-freq-minutes"
+   SIMULATE_MODE="your-simulate-mode"
+   SIMULATE_BATCH_SIZE="your-simulate-batch-size" # used in stream mode
+   STREAM_TABLE="your-stream-table"
+
+   FIRESTORE_DB="your-firestore-db"
+
+   REDIS_URL="your-redis-url"
+
+   VERTEX_REGION="your-vertex-region"
+   VERTEX_ENDPOINT_ID="your-vertex-endpoint-id"
+
+   ENV="your-env" #development or production
+
+   SMTP_SERVER="smtp.gmail.com"
+   SMTP_PORT=587
+   SMTP_USERNAME="your-smtp-username"
+   SMTP_PASSWORD="your-smtp-password"
+   FROM_EMAIL="your-from-email"
    ```
 
 4. Place service account credentials:
@@ -363,37 +388,6 @@ gcloud functions deploy cement-ops-function --runtime python39 --trigger-http
 - **Error Handling**: Improved error messages and fallback responses
 - **Type Safety**: Better TypeScript/PropTypes usage for component props
 
-## 🔐 Environment Configuration
-
-### Frontend Environment Variables (.env.development)
-```bash
-VITE_API_BASE_URL=http://localhost:8000
-VITE_API_TIMEOUT=30000
-
-# Firebase Configuration
-VITE_FIREBASE_API_KEY=your-firebase-api-key
-VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your-project-id
-VITE_FIREBASE_STORAGE_BUCKET=your-project.firebasestorage.app
-VITE_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
-VITE_FIREBASE_APP_ID=your-app-id
-VITE_MEASUREMENT_ID=your-measurement-id
-```
-
-### Backend Environment Variables (.env in project root)
-```bash
-# Gemini AI Configuration
-GEMINI_API_KEY=your-gemini-pro-api-key
-
-# Google Cloud Credentials
-GOOGLE_APPLICATION_CREDENTIALS=iam.json
-
-# BigQuery Configuration (embedded in code)
-PROJECT_ID=YOUR_PROJECT_ID
-DATASET_ID=YOUR_DATASET_ID
-TABLE_ID=YOUR_TABLE_ID
-```
-
 ## 🔑 Test Credentials
 
 For development and testing purposes:
@@ -402,12 +396,6 @@ For development and testing purposes:
 ```
 Email: admin@example.com
 Password: admin123
-```
-
-### Operator Account
-```
-Email: operator@example.com
-Password: operator123
 ```
 
 **Note**: These are test accounts configured in Firebase Authentication for development. In production, use proper user management and strong passwords.

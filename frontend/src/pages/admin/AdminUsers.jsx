@@ -88,7 +88,13 @@ const AdminUsers = () => {
     }
   };
 
-  const handleDeleteUser = async (userId) => {
+  const handleDeleteUser = async (userId, userEmail) => {
+    if (userEmail === 'admin@example.com') {
+      setError('Cannot delete the primary admin account (admin@example.com)');
+      setTimeout(() => setError(''), 3000);
+      return;
+    }
+
     if (!window.confirm('Are you sure you want to delete this user?')) {
       return;
     }
@@ -211,18 +217,33 @@ const AdminUsers = () => {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => {
+                              if (u.email === 'admin@example.com') {
+                                setError('Cannot edit the primary admin account (admin@example.com)');
+                                setTimeout(() => setError(''), 3000);
+                                return;
+                              }
                               setSelectedUser(u);
                               setShowEditModal(true);
                             }}
-                            className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                            title="Edit user"
+                            disabled={u.email === 'admin@example.com'}
+                            className={`p-2 rounded-lg transition-colors ${
+                              u.email === 'admin@example.com'
+                                ? 'text-gray-400 cursor-not-allowed opacity-50'
+                                : 'text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20'
+                            }`}
+                            title={u.email === 'admin@example.com' ? 'Primary admin account cannot be edited' : 'Edit user'}
                           >
                             <Edit2 size={18} />
                           </button>
                           <button
-                            onClick={() => handleDeleteUser(u.id)}
-                            className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                            title="Delete user"
+                            onClick={() => handleDeleteUser(u.id, u.email)}
+                            disabled={u.email === 'admin@example.com'}
+                            className={`p-2 rounded-lg transition-colors ${
+                              u.email === 'admin@example.com'
+                                ? 'text-gray-400 cursor-not-allowed opacity-50'
+                                : 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20'
+                            }`}
+                            title={u.email === 'admin@example.com' ? 'Primary admin account cannot be deleted' : 'Delete user'}
                           >
                             <Trash2 size={18} />
                           </button>
