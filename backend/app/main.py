@@ -9,15 +9,22 @@ from fastapi.responses import JSONResponse
 import google.cloud.logging
 
 root_dir = Path(__file__).parent.parent.parent
-load_dotenv(dotenv_path=root_dir / '.env')
 
+# Only load .env file if it exists (local development)
+env_file = root_dir / '.env'
+if env_file.exists():
+    load_dotenv(dotenv_path=env_file)
+
+# Handle credentials - Cloud Run uses Application Default Credentials
 credentials_path = root_dir / 'xement_iam.json'
 existing_creds = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
 
-if existing_creds and not os.path.isabs(existing_creds):
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = str(root_dir / existing_creds)
-elif not existing_creds and credentials_path.exists():
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = str(credentials_path)
+# Only set credentials file if running locally
+if not os.getenv('K_SERVICE'):  # K_SERVICE is set by Cloud Run
+    if existing_creds and not os.path.isabs(existing_creds):
+        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = str(root_dir / existing_creds)
+    elif not existing_creds and credentials_path.exists():
+        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = str(credentials_path)
 
 from app.routers import (
     auth_router, recommendation_router, simulate_router, run_cycle_router, public_router, user_management_router, config_router, alerts_router, chatbot_router
@@ -88,7 +95,26 @@ else:
     
     app.include_router(dev_router)
 
+@app.on_event("startup")
+async def startup_event():
+    """Log startup information"""
+    logger.info("=" * 50)
+    logger.info("XementAI Backend Starting...")
+    logger.info(f"Environment: {os.getenv('ENV', 'production')}")
+    logger.info(f"Running on Cloud Run: {bool(os.getenv('K_SERVICE'))}")
+    logger.info(f"Port: {os.getenv('PORT', '8000')}")
+    logger.info("=" * 50)
+
 @app.get("/")
 def root():
     logger.info("Health check endpoint called")
-    return {"status": "XementAI backend running"}
+    return {
+        "status": "XementAI backend running",
+        "environment": os.getenv("ENV", "production"),
+        "cloud_run": bool(os.getenv("K_SERVICE"))
+    }
+
+@app.get("/health")
+def health_check():
+    """Health check endpoint for Cloud Run"""
+    return {"status": "healthy", "service": "xement-ai-backend"}
